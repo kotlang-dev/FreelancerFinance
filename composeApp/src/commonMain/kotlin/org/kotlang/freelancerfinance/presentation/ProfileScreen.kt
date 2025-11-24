@@ -11,47 +11,17 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import kotlinx.coroutines.launch
-import org.koin.compose.koinInject
-import org.kotlang.freelancerfinance.domain.model.BusinessProfile
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import org.koin.compose.viewmodel.koinViewModel
 import org.kotlang.freelancerfinance.domain.model.IndianState
-import org.kotlang.freelancerfinance.domain.repository.ProfileRepository
 
 @Composable
 fun ProfileScreen() {
-
-    val repository: ProfileRepository = koinInject()
-    val scope = rememberCoroutineScope()
-
-    // Read current profile from DB
-    val savedProfile by repository.getProfile().collectAsState(initial = null)
-
-    // UI State
-    var businessName by remember { mutableStateOf("") }
-    var panNumber by remember { mutableStateOf("") }
-    var gstin by remember { mutableStateOf("") }
-    var address by remember { mutableStateOf("") }
-    var selectedState by remember { mutableStateOf(IndianState.DELHI) }
-
-    // Populate fields when data loads from DB
-    LaunchedEffect(savedProfile) {
-        savedProfile?.let {
-            businessName = it.businessName
-            panNumber = it.panNumber
-            gstin = it.gstin ?: ""
-            address = it.address
-            selectedState = it.state
-        }
-    }
+    val viewModel = koinViewModel<ProfileViewModel>()
+    val uiState by viewModel.uiState.collectAsStateWithLifecycle()
 
     Column(
         modifier = Modifier.fillMaxSize().padding(16.dp),
@@ -60,40 +30,37 @@ fun ProfileScreen() {
         Text("Business Setup")
 
         OutlinedTextField(
-            value = businessName,
-            onValueChange = { businessName = it },
+            value = uiState.businessName,
+            onValueChange = { viewModel.onAction(ProfileUiAction.UpdateBusinessName(it)) },
             label = { Text("Business Name") },
             modifier = Modifier.fillMaxWidth()
         )
 
         OutlinedTextField(
-            value = panNumber,
-            onValueChange = { panNumber = it },
+            value = uiState.panNumber,
+            onValueChange = { viewModel.onAction(ProfileUiAction.UpdatePanNumber(it)) },
             label = { Text("PAN Number") },
             modifier = Modifier.fillMaxWidth()
         )
 
         OutlinedTextField(
-            value = gstin,
-            onValueChange = { gstin = it },
+            value = uiState.gstin,
+            onValueChange = { viewModel.onAction(ProfileUiAction.UpdateGstin(it)) },
             label = { Text("GSTIN (Optional)") },
             modifier = Modifier.fillMaxWidth()
         )
 
-        // Dropdown for State (Simplified for now)
-        // In a real app, use an Expanded DropdownMenu
         Button(onClick = {
-            // Cycle through states for simple testing MVP
-            // Later we make this a proper dropdown
-            val nextOrdinal = (selectedState.ordinal + 1) % IndianState.entries.size
-            selectedState = IndianState.entries[nextOrdinal]
+            val nextOrdinal = (uiState.selectedState.ordinal + 1) % IndianState.entries.size
+            val nextState = IndianState.entries[nextOrdinal]
+            viewModel.onAction(ProfileUiAction.UpdateState(nextState))
         }) {
-            Text("State: ${selectedState.stateName} (${selectedState.code})")
+            Text("State: ${uiState.selectedState.stateName} (${uiState.selectedState.code})")
         }
 
         OutlinedTextField(
-            value = address,
-            onValueChange = { address = it },
+            value = uiState.address,
+            onValueChange = { viewModel.onAction(ProfileUiAction.UpdateAddress(it)) },
             label = { Text("Address") },
             modifier = Modifier.fillMaxWidth(),
             maxLines = 3
@@ -103,28 +70,16 @@ fun ProfileScreen() {
 
         Button(
             onClick = {
-                val profile = BusinessProfile(
-                    businessName = businessName,
-                    panNumber = panNumber,
-                    gstin = gstin.ifBlank { null },
-                    address = address,
-                    city = "Mumbai",
-                    pincode = "400001",
-                    state = selectedState
-                )
-
-                scope.launch {
-                    repository.saveProfile(profile)
-                }
+                viewModel.onAction(ProfileUiAction.SaveProfile)
             },
             modifier = Modifier.fillMaxWidth()
         ) {
             Text("Save Profile")
         }
 
-        // Debug Text to verify it works
-        if (savedProfile != null) {
-            Text("Current Saved: ${savedProfile?.businessName}")
+        // Debug Text
+        if (uiState.savedProfile != null) {
+            Text("Current Saved: ${uiState.savedProfile?.businessName}")
         }
     }
 }
