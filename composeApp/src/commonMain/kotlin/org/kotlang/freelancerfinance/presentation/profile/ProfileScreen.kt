@@ -1,4 +1,4 @@
-package org.kotlang.freelancerfinance.presentation
+package org.kotlang.freelancerfinance.presentation.profile
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column

@@ -1,4 +1,4 @@
-package org.kotlang.freelancerfinance.presentation
+package org.kotlang.freelancerfinance.presentation.profile
 
 import org.kotlang.freelancerfinance.domain.model.IndianState
 

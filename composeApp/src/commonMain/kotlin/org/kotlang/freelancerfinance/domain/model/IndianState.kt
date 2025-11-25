@@ -44,10 +44,10 @@ enum class IndianState(val code: Int, val stateName: String) {
         get() = code.toString().padStart(2, '0')
 
     companion object {
-        private val map = entries.associateBy(IndianState::code)
 
-        fun fromCode(code: Int): IndianState? {
-            return map[code]
+        fun getByCode(code: Int): IndianState {
+            return entries.find { it.code == code } ?: OTHER_TERRITORY
         }
+
     }
 }
