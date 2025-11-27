@@ -1,4 +1,4 @@
-package org.kotlang.freelancerfinance.data.local
+package org.kotlang.freelancerfinance.data.local.dao
 
 import androidx.room.Dao
 import androidx.room.Delete
@@ -7,11 +7,12 @@ import androidx.room.OnConflictStrategy
 import androidx.room.Query
 import androidx.room.Update
 import kotlinx.coroutines.flow.Flow
+import org.kotlang.freelancerfinance.data.local.entity.ClientEntity
 
 @Dao
 interface ClientDao {
-    
-    @Insert(onConflict = OnConflictStrategy.REPLACE)
+
+    @Insert(onConflict = OnConflictStrategy.Companion.REPLACE)
     suspend fun insertClient(clientEntity: ClientEntity)
 
     @Update

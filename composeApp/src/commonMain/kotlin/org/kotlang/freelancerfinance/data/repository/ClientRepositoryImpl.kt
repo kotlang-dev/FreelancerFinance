@@ -2,7 +2,7 @@ package org.kotlang.freelancerfinance.data.repository
 
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
-import org.kotlang.freelancerfinance.data.local.ClientDao
+import org.kotlang.freelancerfinance.data.local.dao.ClientDao
 import org.kotlang.freelancerfinance.data.mapper.toDomain
 import org.kotlang.freelancerfinance.data.mapper.toDomainList
 import org.kotlang.freelancerfinance.data.mapper.toEntity

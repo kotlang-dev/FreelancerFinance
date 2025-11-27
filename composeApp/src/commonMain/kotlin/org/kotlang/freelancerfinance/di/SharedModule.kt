@@ -7,14 +7,18 @@ import org.koin.core.module.dsl.viewModelOf
 import org.koin.dsl.bind
 import org.koin.dsl.module
 import org.kotlang.freelancerfinance.data.local.AppDatabase
-import org.kotlang.freelancerfinance.data.local.ClientDao
+import org.kotlang.freelancerfinance.data.local.dao.ClientDao
+import org.kotlang.freelancerfinance.data.local.dao.InvoiceDao
 import org.kotlang.freelancerfinance.data.preferences.PreferenceRepositoryImpl
 import org.kotlang.freelancerfinance.data.repository.ProfileRepositoryImpl
 import org.kotlang.freelancerfinance.data.preferences.PreferenceRepository
 import org.kotlang.freelancerfinance.data.repository.ClientRepositoryImpl
+import org.kotlang.freelancerfinance.data.repository.InvoiceRepositoryImpl
 import org.kotlang.freelancerfinance.domain.repository.ClientRepository
+import org.kotlang.freelancerfinance.domain.repository.InvoiceRepository
 import org.kotlang.freelancerfinance.domain.repository.ProfileRepository
 import org.kotlang.freelancerfinance.presentation.client_list.ClientListViewModel
+import org.kotlang.freelancerfinance.presentation.invoice.InvoiceViewModel
 import org.kotlang.freelancerfinance.presentation.profile.ProfileViewModel
 
 val sharedModule = module {
@@ -25,11 +29,14 @@ val sharedModule = module {
             .build()
     }
     single<ClientDao> { get<AppDatabase>().clientDao }
+    single<InvoiceDao> { get<AppDatabase>().invoiceDao }
 
     singleOf(::PreferenceRepositoryImpl) bind PreferenceRepository::class
     singleOf(::ProfileRepositoryImpl) bind ProfileRepository::class
     singleOf(::ClientRepositoryImpl) bind ClientRepository::class
+    singleOf(::InvoiceRepositoryImpl) bind InvoiceRepository::class
 
     viewModelOf(::ProfileViewModel)
     viewModelOf(::ClientListViewModel)
+    viewModelOf(::InvoiceViewModel)
 }

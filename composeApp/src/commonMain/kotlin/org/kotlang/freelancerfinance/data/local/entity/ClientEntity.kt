@@ -1,4 +1,4 @@
-package org.kotlang.freelancerfinance.data.local
+package org.kotlang.freelancerfinance.data.local.entity
 
 import androidx.room.Entity
 import androidx.room.PrimaryKey
