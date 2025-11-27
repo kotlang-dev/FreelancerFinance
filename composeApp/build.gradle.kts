@@ -39,6 +39,7 @@ kotlin {
 
             implementation(libs.androidx.datastore.preferences)
             implementation(libs.kotlinx.serialization.json)
+            implementation(libs.navigation.compose.kmp)
 
             //Koin
             implementation(project.dependencies.platform(libs.koin.bom))

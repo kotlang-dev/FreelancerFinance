@@ -7,6 +7,7 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -14,6 +15,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
+import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -22,13 +24,16 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import freelancerfinance.composeapp.generated.resources.Res
+import freelancerfinance.composeapp.generated.resources.ic_arrow_back
 import freelancerfinance.composeapp.generated.resources.ic_delete
 import org.jetbrains.compose.resources.painterResource
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun CreateInvoiceScreen(
     viewModel: InvoiceViewModel,
-    onFinished: () -> Unit
+    onFinished: () -> Unit,
+    onNavigateBack: () -> Unit
 ) {
     val draftState by viewModel.draftState.collectAsStateWithLifecycle()
     val mainState by viewModel.uiState.collectAsStateWithLifecycle()
@@ -42,7 +47,17 @@ fun CreateInvoiceScreen(
     var showClientDialog by remember { mutableStateOf(false) }
 
     Column(modifier = Modifier.fillMaxSize().padding(16.dp)) {
-        Text("New Invoice", fontWeight = FontWeight.Bold)
+        TopAppBar(
+            title = { Text(text = "New Invoice") },
+            navigationIcon = {
+                IconButton(onClick = onNavigateBack) {
+                    Icon(
+                        painter = painterResource(Res.drawable.ic_arrow_back),
+                        contentDescription = "Navigate Back"
+                    )
+                }
+            }
+        )
         
         Spacer(modifier = Modifier.height(16.dp))
 
