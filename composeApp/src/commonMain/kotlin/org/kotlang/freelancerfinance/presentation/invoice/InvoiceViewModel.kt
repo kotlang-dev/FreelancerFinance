@@ -2,10 +2,14 @@ package org.kotlang.freelancerfinance.presentation.invoice
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
@@ -15,10 +19,12 @@ import org.kotlang.freelancerfinance.domain.model.InvoiceLineItem
 import org.kotlang.freelancerfinance.domain.model.InvoiceStatus
 import org.kotlang.freelancerfinance.domain.repository.ClientRepository
 import org.kotlang.freelancerfinance.domain.repository.InvoiceRepository
+import org.kotlang.freelancerfinance.domain.repository.PdfGenerator
 
 class InvoiceViewModel(
     private val invoiceRepository: InvoiceRepository,
-    private val clientRepository: ClientRepository
+    private val clientRepository: ClientRepository,
+    private val pdfGenerator: PdfGenerator
 ) : ViewModel() {
 
     // 1. Main List State
@@ -36,6 +42,12 @@ class InvoiceViewModel(
     // 2. Draft Form State
     private val _draftState = MutableStateFlow(DraftInvoiceState())
     val draftState: StateFlow<DraftInvoiceState> = _draftState
+
+    private val _isGeneratingPdf = MutableStateFlow(false)
+    val isGeneratingPdf = _isGeneratingPdf.asStateFlow()
+
+    private val _effectChannel = Channel<InvoiceUiEffect>()
+    val effect = _effectChannel.receiveAsFlow()
 
     fun onAction(action: InvoiceUiAction) {
         when (action) {
@@ -110,7 +122,7 @@ class InvoiceViewModel(
 
         val newInvoice = Invoice(
             invoiceNumber = draft.invoiceNumber,
-            client = draft.selectedClient!!,
+            client = draft.selectedClient,
             date = System.currentTimeMillis(),
             items = draft.items,
             status = InvoiceStatus.DRAFT,
@@ -120,8 +132,32 @@ class InvoiceViewModel(
         )
 
         viewModelScope.launch {
-            invoiceRepository.createInvoice(newInvoice)
-            onAction(InvoiceUiAction.ResetDraft)
+            _isGeneratingPdf.value = true
+            try {
+                invoiceRepository.createInvoice(newInvoice)
+                val path = pdfGenerator.generateInvoicePdf(newInvoice)
+                println("PDF Generated at: $path")
+                generatePdf(newInvoice)
+            } catch (e: Exception) {
+                e.printStackTrace()
+                _effectChannel.send(InvoiceUiEffect.ShowError("Failed to save"))
+            } finally {
+                _isGeneratingPdf.value = false
+            }
+
+            delay(200)
+            _effectChannel.send(InvoiceUiEffect.NavigateBack)
+        }
+    }
+
+    fun generatePdf(invoice: Invoice) {
+        viewModelScope.launch {
+            try {
+                val path = pdfGenerator.generateInvoicePdf(invoice)
+                println("PDF Generated at: $path") // TODO show a Snackbar or open the file
+            } catch (e: Exception) {
+                e.printStackTrace()
+            }
         }
     }
 }

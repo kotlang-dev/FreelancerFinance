@@ -1,5 +1,6 @@
 package org.kotlang.freelancerfinance.presentation.invoice
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -7,6 +8,7 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
@@ -37,6 +39,7 @@ fun CreateInvoiceScreen(
 ) {
     val draftState by viewModel.draftState.collectAsStateWithLifecycle()
     val mainState by viewModel.uiState.collectAsStateWithLifecycle()
+    val isGeneratingPdf by viewModel.isGeneratingPdf.collectAsState()
 
     // Local State for "Add Item" inputs
     var desc by remember { mutableStateOf("") }
@@ -45,6 +48,19 @@ fun CreateInvoiceScreen(
     
     // Client Selector Dialog
     var showClientDialog by remember { mutableStateOf(false) }
+
+    LaunchedEffect(Unit) {
+        viewModel.effect.collect { effect ->
+            when (effect) {
+                is InvoiceUiEffect.NavigateBack -> {
+                    onFinished()
+                }
+                is InvoiceUiEffect.ShowError -> {
+                    // Show snackbar logic here
+                }
+            }
+        }
+    }
 
     Column(modifier = Modifier.fillMaxSize().padding(16.dp)) {
         TopAppBar(
@@ -161,17 +177,26 @@ fun CreateInvoiceScreen(
                 Button(
                     onClick = {
                         viewModel.onAction(InvoiceUiAction.SaveInvoice)
-                        onFinished()
                     },
                     modifier = Modifier.fillMaxWidth(),
-                    enabled = draftState.selectedClient != null && draftState.items.isNotEmpty()
+                    enabled = draftState.selectedClient != null &&
+                            draftState.items.isNotEmpty() &&
+                            !isGeneratingPdf
                 ) {
-                    Text("Save Invoice")
+                    if (isGeneratingPdf) {
+                        CircularProgressIndicator(
+                            modifier = Modifier.size(24.dp),
+                            color = Color.White,
+                            strokeWidth = 2.dp
+                        )
+                        Text("Generating PDF...")
+                    } else {
+                        Text("Save Invoice")
+                    }
                 }
             }
         }
     }
-
     // Client Selection Dialog
     if (showClientDialog) {
         AlertDialog(
