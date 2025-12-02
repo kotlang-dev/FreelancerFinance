@@ -2,6 +2,7 @@ package org.kotlang.freelancerfinance.presentation.invoice
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -13,18 +14,21 @@ import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import org.kotlang.freelancerfinance.domain.logic.TaxCalculator
 import org.kotlang.freelancerfinance.domain.model.Invoice
 import org.kotlang.freelancerfinance.domain.model.InvoiceLineItem
 import org.kotlang.freelancerfinance.domain.model.InvoiceStatus
 import org.kotlang.freelancerfinance.domain.repository.ClientRepository
+import org.kotlang.freelancerfinance.domain.repository.FileOpener
 import org.kotlang.freelancerfinance.domain.repository.InvoiceRepository
 import org.kotlang.freelancerfinance.domain.repository.PdfGenerator
 
 class InvoiceViewModel(
     private val invoiceRepository: InvoiceRepository,
     private val clientRepository: ClientRepository,
-    private val pdfGenerator: PdfGenerator
+    private val pdfGenerator: PdfGenerator,
+    private val fileOpener: FileOpener
 ) : ViewModel() {
 
     // 1. Main List State
@@ -137,7 +141,9 @@ class InvoiceViewModel(
                 invoiceRepository.createInvoice(newInvoice)
                 val path = pdfGenerator.generateInvoicePdf(newInvoice)
                 println("PDF Generated at: $path")
-                generatePdf(newInvoice)
+                withContext(Dispatchers.Main) {
+                    fileOpener.openFile(path)
+                }
             } catch (e: Exception) {
                 e.printStackTrace()
                 _effectChannel.send(InvoiceUiEffect.ShowError("Failed to save"))
@@ -147,17 +153,6 @@ class InvoiceViewModel(
 
             delay(200)
             _effectChannel.send(InvoiceUiEffect.NavigateBack)
-        }
-    }
-
-    fun generatePdf(invoice: Invoice) {
-        viewModelScope.launch {
-            try {
-                val path = pdfGenerator.generateInvoicePdf(invoice)
-                println("PDF Generated at: $path") // TODO show a Snackbar or open the file
-            } catch (e: Exception) {
-                e.printStackTrace()
-            }
         }
     }
 }

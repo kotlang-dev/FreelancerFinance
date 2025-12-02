@@ -10,11 +10,13 @@ import org.koin.core.module.Module
 import org.koin.dsl.module
 import org.kotlang.freelancerfinance.data.local.AppDatabase
 import org.kotlang.freelancerfinance.data.local.getDesktopFile
+import org.kotlang.freelancerfinance.data.repository.DesktopFileOpener
 import org.kotlang.freelancerfinance.data.repository.DesktopPdfGenerator
 import org.kotlang.freelancerfinance.data.util.Constants
+import org.kotlang.freelancerfinance.domain.repository.FileOpener
 import org.kotlang.freelancerfinance.domain.repository.PdfGenerator
 
-actual val platformModule : Module = module {
+actual val platformModule: Module = module {
 
     single<RoomDatabase.Builder<AppDatabase>> {
         val dbFile = getDesktopFile(fileName = Constants.DATABASE_NAME)
@@ -28,5 +30,5 @@ actual val platformModule : Module = module {
     }
 
     single<PdfGenerator> { DesktopPdfGenerator() }
-
+    single<FileOpener> { DesktopFileOpener() }
 }

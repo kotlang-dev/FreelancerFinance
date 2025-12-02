@@ -9,8 +9,10 @@ import androidx.room.RoomDatabase
 import org.koin.android.ext.koin.androidContext
 import org.koin.dsl.module
 import org.kotlang.freelancerfinance.data.local.AppDatabase
+import org.kotlang.freelancerfinance.data.repository.AndroidFileOpener
 import org.kotlang.freelancerfinance.data.repository.AndroidPdfGenerator
 import org.kotlang.freelancerfinance.data.util.Constants
+import org.kotlang.freelancerfinance.domain.repository.FileOpener
 import org.kotlang.freelancerfinance.domain.repository.PdfGenerator
 
 actual val platformModule = module {
@@ -30,5 +32,6 @@ actual val platformModule = module {
     }
 
     single<PdfGenerator> { AndroidPdfGenerator(androidContext()) }
+    single<FileOpener> { AndroidFileOpener(androidContext()) }
 
 }
