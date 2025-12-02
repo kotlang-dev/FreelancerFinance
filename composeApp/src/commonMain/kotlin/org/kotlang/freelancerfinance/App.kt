@@ -63,7 +63,8 @@ fun App() {
                         onFinished = {
                             navController.popBackStack(Route.Dashboard, inclusive = false)
                         },
-                        onNavigateBack = { navController.navigateUp() }
+                        onNavigateBack = { navController.navigateUp() },
+                        onAddNewClient = { navController.navigate(Route.ClientList) }
                     )
                 }
             }

@@ -29,13 +29,15 @@ import freelancerfinance.composeapp.generated.resources.Res
 import freelancerfinance.composeapp.generated.resources.ic_arrow_back
 import freelancerfinance.composeapp.generated.resources.ic_delete
 import org.jetbrains.compose.resources.painterResource
+import org.kotlang.freelancerfinance.presentation.invoice.component.ClientSelectionSheet
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun CreateInvoiceScreen(
     viewModel: InvoiceViewModel,
     onFinished: () -> Unit,
-    onNavigateBack: () -> Unit
+    onNavigateBack: () -> Unit,
+    onAddNewClient: () -> Unit
 ) {
     val draftState by viewModel.draftState.collectAsStateWithLifecycle()
     val mainState by viewModel.uiState.collectAsStateWithLifecycle()
@@ -197,29 +199,19 @@ fun CreateInvoiceScreen(
             }
         }
     }
-    // Client Selection Dialog
+    // Client Selection Sheet
     if (showClientDialog) {
-        AlertDialog(
-            onDismissRequest = { showClientDialog = false },
-            title = { Text("Select Client") },
-            text = {
-                LazyColumn {
-                    items(mainState.clients) { client ->
-                        Text(
-                            text = client.name,
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .clickable {
-                                    viewModel.onAction(InvoiceUiAction.SelectClient(client))
-                                    showClientDialog = false
-                                }
-                                .padding(16.dp)
-                        )
-                        HorizontalDivider()
-                    }
-                }
+        ClientSelectionSheet(
+            clients = mainState.clients,
+            onClientSelected = {client ->
+                viewModel.onAction(InvoiceUiAction.SelectClient(client))
+                showClientDialog = false
             },
-            confirmButton = { TextButton(onClick = { showClientDialog = false }) { Text("Cancel") } }
+            onAddNewClient = {
+                onAddNewClient()
+                showClientDialog = false
+            },
+            onDismissRequest = { showClientDialog = false }
         )
     }
 }
