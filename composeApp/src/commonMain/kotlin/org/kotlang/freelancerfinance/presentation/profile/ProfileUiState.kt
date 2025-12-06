@@ -12,5 +12,6 @@ data class ProfileUiState(
     val pincode: String = "400001",
     val selectedState: IndianState = IndianState.DELHI,
     val isLoading: Boolean = false,
+    val logoPath: String? = null,
     val savedProfile: BusinessProfile? = null
 )

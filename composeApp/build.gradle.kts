@@ -20,6 +20,8 @@ kotlin {
     }
     
     jvm()
+
+    compilerOptions.freeCompilerArgs.add("-Xexpect-actual-classes")
     
     sourceSets {
         androidMain.dependencies {
@@ -40,6 +42,7 @@ kotlin {
             implementation(libs.androidx.datastore.preferences)
             implementation(libs.kotlinx.serialization.json)
             implementation(libs.navigation.compose.kmp)
+            implementation(libs.coil.compose)
 
             //Koin
             implementation(project.dependencies.platform(libs.koin.bom))

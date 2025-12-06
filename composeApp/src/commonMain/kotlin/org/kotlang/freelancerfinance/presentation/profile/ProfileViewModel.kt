@@ -2,16 +2,19 @@ package org.kotlang.freelancerfinance.presentation.profile
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import org.kotlang.freelancerfinance.domain.model.BusinessProfile
+import org.kotlang.freelancerfinance.domain.repository.FileSystemHelper
 import org.kotlang.freelancerfinance.domain.repository.ProfileRepository
 
 class ProfileViewModel(
-    private val repository: ProfileRepository
+    private val repository: ProfileRepository,
+    private val fileSystemHelper: FileSystemHelper
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(ProfileUiState())
@@ -55,6 +58,9 @@ class ProfileViewModel(
             is ProfileUiAction.UpdateState -> {
                 _uiState.update { it.copy(selectedState = action.state) }
             }
+            is ProfileUiAction.UpdateLogo -> {
+                _uiState.update { it.copy(logoPath = action.path) }
+            }
             ProfileUiAction.SaveProfile -> {
                 saveProfile()
             }
@@ -70,10 +76,18 @@ class ProfileViewModel(
             address = currentState.address,
             city = currentState.city,
             pincode = currentState.pincode,
-            state = currentState.selectedState
+            state = currentState.selectedState,
+            logoPath = currentState.logoPath
         )
         viewModelScope.launch {
             repository.saveProfile(profile)
+        }
+    }
+
+    fun onLogoPicked(bytes: ByteArray) {
+        viewModelScope.launch(Dispatchers.IO) {
+            val path = fileSystemHelper.saveFile("company_logo.jpg", bytes)
+            onAction(ProfileUiAction.UpdateLogo(path))
         }
     }
 }

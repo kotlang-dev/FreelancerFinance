@@ -10,7 +10,8 @@ data class BusinessProfile(
     val address: String,
     val city: String,
     val pincode: String,
-    val state: IndianState
+    val state: IndianState,
+    val logoPath: String? = null
 ) {
 
     val isRegisteredDealer: Boolean

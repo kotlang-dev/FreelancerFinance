@@ -23,10 +23,12 @@ import org.kotlang.freelancerfinance.domain.repository.ClientRepository
 import org.kotlang.freelancerfinance.domain.repository.FileOpener
 import org.kotlang.freelancerfinance.domain.repository.InvoiceRepository
 import org.kotlang.freelancerfinance.domain.repository.PdfGenerator
+import org.kotlang.freelancerfinance.domain.repository.ProfileRepository
 
 class InvoiceViewModel(
     private val invoiceRepository: InvoiceRepository,
     private val clientRepository: ClientRepository,
+    private val profileRepository: ProfileRepository,
     private val pdfGenerator: PdfGenerator,
     private val fileOpener: FileOpener
 ) : ViewModel() {
@@ -139,10 +141,16 @@ class InvoiceViewModel(
             _isGeneratingPdf.value = true
             try {
                 invoiceRepository.createInvoice(newInvoice)
-                val path = pdfGenerator.generateInvoicePdf(newInvoice)
-                println("PDF Generated at: $path")
-                withContext(Dispatchers.Main) {
-                    fileOpener.openFile(path)
+                profileRepository.getProfile().collect { userProfile ->
+                    if (userProfile != null) {
+                        val path = pdfGenerator.generateInvoicePdf(newInvoice, userProfile)
+
+                        withContext(Dispatchers.Main) {
+                            fileOpener.openFile(path)
+                        }
+                    } else {
+                        _effectChannel.send(InvoiceUiEffect.ShowError("Cannot generate PDF. No Business Profile found."))
+                    }
                 }
             } catch (e: Exception) {
                 e.printStackTrace()

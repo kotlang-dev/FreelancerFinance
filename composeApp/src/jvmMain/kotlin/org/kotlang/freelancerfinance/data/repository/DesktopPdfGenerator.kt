@@ -7,6 +7,8 @@ import org.apache.pdfbox.pdmodel.PDPage
 import org.apache.pdfbox.pdmodel.PDPageContentStream
 import org.apache.pdfbox.pdmodel.font.PDType1Font
 import org.apache.pdfbox.pdmodel.font.Standard14Fonts
+import org.apache.pdfbox.pdmodel.graphics.image.PDImageXObject
+import org.kotlang.freelancerfinance.domain.model.BusinessProfile
 import org.kotlang.freelancerfinance.domain.model.Invoice
 import org.kotlang.freelancerfinance.domain.repository.PdfGenerator
 import java.io.File
@@ -16,7 +18,7 @@ import java.util.Locale
 
 class DesktopPdfGenerator : PdfGenerator {
 
-    override suspend fun generateInvoicePdf(invoice: Invoice): String {
+    override suspend fun generateInvoicePdf(invoice: Invoice, profile: BusinessProfile): String {
         return withContext(Dispatchers.IO) {
             val document = PDDocument()
             val page = PDPage()
@@ -29,33 +31,58 @@ class DesktopPdfGenerator : PdfGenerator {
 
                     var yPosition = pageHeight - 50f
 
-                    // --- 1. Header ---
+                    // --- 1. Logo (Top Right) ---
+                    if (profile.logoPath != null) {
+                        try {
+                            val pdImage = PDImageXObject.createFromFile(profile.logoPath, document)
+                            val width = 100f
+                            val height = width / (pdImage.width.toFloat() / pdImage.height.toFloat())
+                            val imageY = pageHeight - 20f - height
+                            drawImage(pdImage, 450f, imageY, width, height)
+                        } catch (e: Exception) { e.printStackTrace() }
+                    }
+
+                    // --- 2. Seller Details (Top Left) ---
+                    beginText()
+                    setFont(PDType1Font(Standard14Fonts.FontName.HELVETICA_BOLD), 18f)
+                    newLineAtOffset(50f, yPosition)
+                    showText(profile.businessName)
+                    endText()
+
+                    yPosition -= 20f
+
+                    beginText()
+                    setFont(PDType1Font(Standard14Fonts.FontName.HELVETICA), 12f)
+                    newLineAtOffset(50f, yPosition)
+                    showText(profile.address)
+                    newLineAtOffset(0f, -15f)
+                    showText("${profile.city} - ${profile.pincode}")
+                    newLineAtOffset(0f, -15f)
+                    showText("GSTIN: ${profile.gstin ?: "N/A"}")
+                    endText()
+
+                    // --- 3. Invoice Meta Data (Right Side) ---
+                    var rightY = pageHeight - 140f
                     beginText()
                     setFont(PDType1Font(Standard14Fonts.FontName.HELVETICA_BOLD), 24f)
-                    newLineAtOffset(50f, yPosition)
+                    // Approximate right align by guessing width or hardcoding X
+                    newLineAtOffset(400f, rightY)
                     showText("INVOICE")
                     endText()
 
-                    // --- 2. Details (Right Aligned) ---
+                    rightY -= 20f
                     beginText()
                     setFont(PDType1Font(Standard14Fonts.FontName.HELVETICA), 12f)
-                    newLineAtOffset(400f, yPosition)
-                    showText("No: ${invoice.invoiceNumber}")
+                    newLineAtOffset(400f, rightY)
+                    showText("#${invoice.invoiceNumber}")
                     newLineAtOffset(0f, -15f)
-                    showText(
-                        "Date: ${
-                            SimpleDateFormat("dd MMM yyyy", Locale.ENGLISH).format(
-                                Date(
-                                    invoice.date
-                                )
-                            )
-                        }"
-                    )
+                    showText(SimpleDateFormat("dd MMM yyyy", Locale.ENGLISH).format(Date(invoice.date)))
                     endText()
 
-                    yPosition -= 60f
+                    // Move Main Cursor Down
+                    yPosition = minOf(yPosition - 60f, rightY - 40f)
 
-                    // --- 3. Bill To ---
+                    // --- 4. Bill To (Client) ---
                     beginText()
                     setFont(PDType1Font(Standard14Fonts.FontName.HELVETICA_BOLD), 14f)
                     newLineAtOffset(50f, yPosition)
@@ -76,7 +103,7 @@ class DesktopPdfGenerator : PdfGenerator {
                     }
                     endText()
 
-                    yPosition -= 50f
+                    yPosition -= 40f
 
                     // --- 4. Table Header --- Draw Line
                     moveTo(50f, yPosition)

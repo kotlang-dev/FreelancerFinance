@@ -9,4 +9,5 @@ sealed interface ProfileUiAction {
     data class UpdateAddress(val address: String) : ProfileUiAction
     data class UpdateState(val state: IndianState) : ProfileUiAction
     data object SaveProfile : ProfileUiAction
+    data class UpdateLogo(val path: String) : ProfileUiAction
 }
