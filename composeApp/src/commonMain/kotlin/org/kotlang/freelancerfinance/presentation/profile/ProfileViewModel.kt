@@ -33,7 +33,8 @@ class ProfileViewModel(
                             city = profile.city,
                             pincode = profile.pincode,
                             selectedState = profile.state,
-                            savedProfile = profile
+                            savedProfile = profile,
+                            logoPath = profile.logoPath
                         )
                     }
                 }
@@ -56,7 +57,7 @@ class ProfileViewModel(
                 _uiState.update { it.copy(address = action.address) }
             }
             is ProfileUiAction.UpdateState -> {
-                _uiState.update { it.copy(selectedState = action.state) }
+                //_uiState.update { it.copy(selectedState = action.state) }
             }
             is ProfileUiAction.UpdateLogo -> {
                 _uiState.update { it.copy(logoPath = action.path) }

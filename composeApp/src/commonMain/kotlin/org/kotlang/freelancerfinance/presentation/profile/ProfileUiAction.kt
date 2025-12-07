@@ -7,7 +7,7 @@ sealed interface ProfileUiAction {
     data class UpdatePanNumber(val pan: String) : ProfileUiAction
     data class UpdateGstin(val gstin: String) : ProfileUiAction
     data class UpdateAddress(val address: String) : ProfileUiAction
-    data class UpdateState(val state: IndianState) : ProfileUiAction
+    data class UpdateState(val state: String) : ProfileUiAction
     data object SaveProfile : ProfileUiAction
     data class UpdateLogo(val path: String) : ProfileUiAction
 }
