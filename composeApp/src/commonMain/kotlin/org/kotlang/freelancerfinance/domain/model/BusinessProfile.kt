@@ -7,8 +7,8 @@ data class BusinessProfile(
     val businessName: String,
     val panNumber: String,
     val gstin: String? = null,
-    val address: String,
-    val city: String,
+    val addressLine1: String,
+    val addressLine2: String,
     val pincode: String,
     val state: IndianState,
     val logoPath: String? = null
@@ -24,4 +24,11 @@ data class BusinessProfile(
         val stateCodeFromGst = gstin.take(2).toIntOrNull() ?: return false
         return stateCodeFromGst == state.code
     }
+
+    val fullAddress: String
+        get() = buildString {
+            append(addressLine1)
+            if (addressLine2.isNotBlank()) append(", $addressLine2")
+            append(" - $pincode")
+        }
 }

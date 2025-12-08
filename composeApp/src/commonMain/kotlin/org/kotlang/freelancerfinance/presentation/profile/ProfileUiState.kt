@@ -4,14 +4,37 @@ import org.kotlang.freelancerfinance.domain.model.BusinessProfile
 import org.kotlang.freelancerfinance.domain.model.IndianState
 
 data class ProfileUiState(
+    val originalProfile: BusinessProfile? = null,
     val businessName: String = "",
     val panNumber: String = "",
     val gstin: String = "",
-    val address: String = "",
-    val city: String = "Mumbai",
-    val pincode: String = "400001",
+    val addressLine1: String = "",
+    val addressLine2: String = "",
+    val pincode: String = "",
     val selectedState: IndianState = IndianState.DELHI,
-    val isLoading: Boolean = false,
     val logoPath: String? = null,
-    val savedProfile: BusinessProfile? = null
-)
+    val isLoading: Boolean = false,
+    val isSaving: Boolean = false,
+) {
+    val isSaveEnabled: Boolean
+        get() {
+            // Case A: First time creating profile (No original exists)
+            if (originalProfile == null) {
+                return businessName.isNotBlank()
+            }
+
+            // Case B: Editing existing profile
+            val currentProfile = BusinessProfile(
+                businessName = businessName,
+                panNumber = panNumber,
+                gstin = gstin.ifBlank { null },
+                addressLine1 = addressLine1,
+                addressLine2 = addressLine2,
+                pincode = pincode,
+                state = selectedState,
+                logoPath = logoPath
+            )
+
+            return currentProfile != originalProfile && businessName.isNotBlank()
+        }
+}

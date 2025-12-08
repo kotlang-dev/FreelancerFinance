@@ -5,7 +5,10 @@ import androidx.compose.foundation.layout.consumeWindowInsets
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.systemBars
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -22,7 +25,10 @@ import org.kotlang.freelancerfinance.presentation.theme.FinanceAppTheme
 @Composable
 fun App() {
     FinanceAppTheme {
-        Scaffold { innerPadding ->
+        val snackbarHostState = remember { SnackbarHostState() }
+        Scaffold(
+            snackbarHost = { SnackbarHost(hostState = snackbarHostState) }
+        ) { innerPadding ->
 
             val navController = rememberNavController()
 
@@ -45,6 +51,7 @@ fun App() {
 
                 composable<Route.Profile> {
                     ProfileScreen(
+                        snackbarHostState = snackbarHostState,
                         onNavigateBack = { navController.navigateUp() }
                     )
                 }

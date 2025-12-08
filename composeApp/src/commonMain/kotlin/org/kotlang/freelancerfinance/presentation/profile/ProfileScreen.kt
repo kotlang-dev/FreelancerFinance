@@ -1,5 +1,6 @@
 package org.kotlang.freelancerfinance.presentation.profile
 
+import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -14,6 +15,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.widthIn
@@ -31,11 +33,13 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -50,12 +54,13 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import coil3.compose.AsyncImage
 import freelancerfinance.composeapp.generated.resources.Res
-import freelancerfinance.composeapp.generated.resources.ic_arrow_back_ios
+import freelancerfinance.composeapp.generated.resources.ic_arrow_drop_down
 import freelancerfinance.composeapp.generated.resources.ic_card
 import freelancerfinance.composeapp.generated.resources.ic_edit
 import freelancerfinance.composeapp.generated.resources.ic_outline_add
 import freelancerfinance.composeapp.generated.resources.ic_receipt_long
 import freelancerfinance.composeapp.generated.resources.img_company_logo_placeholder
+import kotlinx.coroutines.launch
 import org.jetbrains.compose.resources.DrawableResource
 import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.ui.tooling.preview.Preview
@@ -63,14 +68,27 @@ import org.koin.compose.viewmodel.koinViewModel
 import org.kotlang.freelancerfinance.domain.model.IndianState
 import org.kotlang.freelancerfinance.presentation.design_system.bar.FinanceTopBar
 import org.kotlang.freelancerfinance.presentation.profile.component.ImagePickerFactory
+import org.kotlang.freelancerfinance.presentation.util.ObserveAsEvents
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ProfileScreen(
+    snackbarHostState: SnackbarHostState,
     onNavigateBack: () -> Unit
 ) {
     val viewModel = koinViewModel<ProfileViewModel>()
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+    val scope = rememberCoroutineScope()
+
+    ObserveAsEvents(viewModel.events) { event ->
+        when (event) {
+            is ProfileUiEvent.ShowSnackbar -> {
+                scope.launch {
+                    snackbarHostState.showSnackbar(event.message)
+                }
+            }
+        }
+    }
 
     val pickerFactory = ImagePickerFactory()
 
@@ -107,7 +125,7 @@ fun ProfileScreen(
                 CustomTextField(
                     value = uiState.businessName,
                     onValueChange = { viewModel.onAction(ProfileUiAction.UpdateBusinessName(it)) },
-                    placeholder = "Company Name",
+                    placeholderText = "Company Name",
                     modifier = Modifier.fillMaxWidth()
                 )
 
@@ -127,16 +145,16 @@ fun ProfileScreen(
                                         )
                                     )
                                 },
-                                placeholder = "Enter your PAN",
+                                placeholderText = "Enter your PAN",
                                 leadingIconResId = Res.drawable.ic_card
                             )
                         },
                         contentEnd = {
-                            InputLabel(text = "GSTIN")
+                            InputLabel(text = "GSTIN (Optional for Unregistered)")
                             CustomTextField(
                                 value = uiState.gstin,
                                 onValueChange = { viewModel.onAction(ProfileUiAction.UpdateGstin(it)) },
-                                placeholder = "Enter your GSTIN",
+                                placeholderText = "Enter your GSTIN",
                                 leadingIconResId = Res.drawable.ic_receipt_long
                             )
                         }
@@ -152,30 +170,22 @@ fun ProfileScreen(
                         contentStart = {
                             InputLabel(text = "Address Line 1")
                             CustomTextField(
-                                value = uiState.address,
+                                value = uiState.addressLine1,
                                 onValueChange = {
-                                    viewModel.onAction(
-                                        ProfileUiAction.UpdateAddress(
-                                            it
-                                        )
-                                    )
+                                    viewModel.onAction(ProfileUiAction.UpdateAddressLine1(it))
                                 },
-                                placeholder = "Enter your address"
+                                placeholderText = "Enter your address"
                             )
 
                         },
                         contentEnd = {
-                            InputLabel(text = "Address Line 2")
+                            InputLabel(text = "Address Line 2 (Optional)")
                             CustomTextField(
-                                value = uiState.address,
+                                value = uiState.addressLine2,
                                 onValueChange = {
-                                    viewModel.onAction(
-                                        ProfileUiAction.UpdateAddress(
-                                            it
-                                        )
-                                    )
+                                    viewModel.onAction(ProfileUiAction.UpdateAddressLine2(it))
                                 },
-                                placeholder = "Apartment, suite, etc. (optional)"
+                                placeholderText = "Apartment, suite, etc."
                             )
                         }
                     )
@@ -185,18 +195,19 @@ fun ProfileScreen(
                     ResponsiveFormRow(
                         contentStart = {
                             InputLabel(text = "State")
-                            DropdownField(
+                            AppDropdownField(
                                 selectedValue = uiState.selectedState.stateName,
-                                onValueChange = { viewModel.onAction(ProfileUiAction.UpdateState(it)) },
-                                options = IndianState.entries.map { it.stateName }
+                                options = IndianState.entries,
+                                itemLabel = { it.stateName },
+                                onValueChanged = { viewModel.onAction(ProfileUiAction.UpdateState(it)) },
                             )
                         },
                         contentEnd = {
                             InputLabel(text = "Pincode")
                             CustomTextField(
                                 value = uiState.pincode,
-                                onValueChange = { },
-                                placeholder = "Enter pincode"
+                                onValueChange = { viewModel.onAction(ProfileUiAction.UpdatePincode(it)) },
+                                placeholderText = "Enter pincode"
                             )
                         }
                     )
@@ -213,7 +224,9 @@ fun ProfileScreen(
             modifier = Modifier
                 .align(Alignment.BottomCenter)
                 .widthIn(max = 700.dp)
-                .padding(16.dp)
+                .padding(16.dp),
+            enabled = uiState.isSaveEnabled,
+            onClick = { viewModel.onAction(ProfileUiAction.SaveProfile) }
         )
     }
 }
@@ -320,20 +333,26 @@ fun InputLabel(text: String) {
 fun CustomTextField(
     value: String,
     onValueChange: (String) -> Unit,
-    placeholder: String,
     modifier: Modifier = Modifier,
-    leadingIconResId: DrawableResource? = null
+    placeholderText: String? = null,
+    readOnly: Boolean = false,
+    leadingIconResId: DrawableResource? = null,
+    trailingIcon: @Composable (() -> Unit)? = null
 ) {
     OutlinedTextField(
         value = value,
         onValueChange = onValueChange,
         modifier = modifier.fillMaxWidth(),
-        placeholder = {
-            Text(
-                text = placeholder,
-                color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f)
-            )
-        },
+        readOnly = readOnly,
+        singleLine = true,
+        placeholder = if (placeholderText != null) {
+            {
+                Text(
+                    text = placeholderText,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f)
+                )
+            }
+        } else null,
         shape = RoundedCornerShape(8.dp),
         colors = OutlinedTextFieldDefaults.colors(
             focusedContainerColor = MaterialTheme.colorScheme.surfaceContainerLowest,
@@ -351,57 +370,69 @@ fun CustomTextField(
                     tint = MaterialTheme.colorScheme.onSurfaceVariant
                 )
             }
-        } else null
+        } else null,
+        trailingIcon = trailingIcon
     )
 }
 
 @Composable
-fun DropdownField(
+fun <T> AppDropdownField(
     selectedValue: String,
-    onValueChange: (String) -> Unit,
-    options: List<String>
+    options: List<T>,
+    itemLabel: (T) -> String,
+    onValueChanged: (T) -> Unit
 ) {
     var expanded by remember { mutableStateOf(false) }
 
+    val rotation by animateFloatAsState(targetValue = if (expanded) 180f else 0f)
+
     Box(modifier = Modifier.fillMaxWidth()) {
         OutlinedTextField(
-            value = selectedValue.ifEmpty { "Select a state" },
+            value = selectedValue,
             onValueChange = {},
             readOnly = true,
             modifier = Modifier.fillMaxWidth(),
             trailingIcon = {
                 Icon(
-                    painter = painterResource(Res.drawable.ic_arrow_back_ios),
-                    contentDescription = "Expand",
-                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                    modifier = Modifier
-                        .rotate(270f)
-                        .clickable { expanded = true }
+                    painter = painterResource(Res.drawable.ic_arrow_drop_down),
+                    contentDescription = null,
+                    modifier = Modifier.rotate(rotation)
                 )
             },
-            shape = RoundedCornerShape(8.dp),
+            shape = RoundedCornerShape(12.dp),
             colors = OutlinedTextFieldDefaults.colors(
                 focusedContainerColor = MaterialTheme.colorScheme.surfaceContainerLowest,
                 unfocusedContainerColor = MaterialTheme.colorScheme.surfaceContainerLowest,
+                disabledContainerColor = MaterialTheme.colorScheme.surfaceContainerLowest,
+                cursorColor = MaterialTheme.colorScheme.primary,
                 focusedBorderColor = MaterialTheme.colorScheme.primary,
                 unfocusedBorderColor = MaterialTheme.colorScheme.outline,
-            )
+            ),
         )
+
+        Box(
+            modifier = Modifier
+                .matchParentSize()
+                .clickable { expanded = !expanded }
+        )
+
         DropdownMenu(
             expanded = expanded,
             onDismissRequest = { expanded = false },
-            modifier = Modifier.background(MaterialTheme.colorScheme.surfaceContainer)
+            modifier = Modifier
+                .heightIn(max = 400.dp)
+                .background(MaterialTheme.colorScheme.surfaceContainer)
         ) {
             options.forEach { option ->
                 DropdownMenuItem(
                     text = {
                         Text(
-                            text = option,
+                            text = itemLabel(option),
                             color = MaterialTheme.colorScheme.onSurface
                         )
                     },
                     onClick = {
-                        onValueChange(option)
+                        onValueChanged(option)
                         expanded = false
                     }
                 )
@@ -411,13 +442,18 @@ fun DropdownField(
 }
 
 @Composable
-fun SaveButton(modifier: Modifier = Modifier) {
+fun SaveButton(
+    modifier: Modifier = Modifier,
+    enabled: Boolean,
+    onClick: () -> Unit
+) {
     Button(
-        onClick = { /* Save Logic */ },
+        onClick = onClick,
         modifier = modifier
             .fillMaxWidth()
             .height(56.dp),
-        shape = RoundedCornerShape(12.dp)
+        shape = RoundedCornerShape(12.dp),
+        enabled = enabled
     ) {
         Text(
             text = "Save Changes",
@@ -464,6 +500,13 @@ fun ResponsiveFormRow(
 @Composable
 fun ProfileScreenPreview() {
     ProfileScreen(
+        snackbarHostState = SnackbarHostState(),
         onNavigateBack = {}
     )
 }
+
+//TODO add ProfileRoot Composable
+//TODO add alphanumeric keyboard to pan and gstin
+//TODO add numeric keyboard to pincode
+//TODO validate all the text fields
+//TODO manage focus requestor
