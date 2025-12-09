@@ -11,5 +11,5 @@ sealed interface ProfileUiAction {
     data class UpdateState(val state: IndianState) : ProfileUiAction
     data class UpdatePincode(val pincode: String) : ProfileUiAction
     data object SaveProfile : ProfileUiAction
-    data class UpdateLogo(val path: String) : ProfileUiAction
+    data class UpdateLogo(val bytes: ByteArray) : ProfileUiAction
 }

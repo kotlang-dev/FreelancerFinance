@@ -19,7 +19,7 @@ import org.kotlang.freelancerfinance.presentation.client_list.ClientListScreen
 import org.kotlang.freelancerfinance.presentation.invoice.CreateInvoiceScreen
 import org.kotlang.freelancerfinance.presentation.invoice.InvoiceViewModel
 import org.kotlang.freelancerfinance.presentation.navigation.Route
-import org.kotlang.freelancerfinance.presentation.profile.ProfileScreen
+import org.kotlang.freelancerfinance.presentation.profile.ProfileScreenRoot
 import org.kotlang.freelancerfinance.presentation.theme.FinanceAppTheme
 
 @Composable
@@ -50,7 +50,7 @@ fun App() {
                 }
 
                 composable<Route.Profile> {
-                    ProfileScreen(
+                    ProfileScreenRoot(
                         snackbarHostState = snackbarHostState,
                         onNavigateBack = { navController.navigateUp() }
                     )

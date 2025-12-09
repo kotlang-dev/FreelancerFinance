@@ -22,6 +22,8 @@ import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.KeyboardActions
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
@@ -48,6 +50,9 @@ import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.ui.text.input.KeyboardCapitalization
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -70,13 +75,12 @@ import org.kotlang.freelancerfinance.presentation.design_system.bar.FinanceTopBa
 import org.kotlang.freelancerfinance.presentation.profile.component.ImagePickerFactory
 import org.kotlang.freelancerfinance.presentation.util.ObserveAsEvents
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun ProfileScreen(
-    snackbarHostState: SnackbarHostState,
-    onNavigateBack: () -> Unit
+fun ProfileScreenRoot(
+    viewModel: ProfileViewModel = koinViewModel(),
+    onNavigateBack: () -> Unit,
+    snackbarHostState: SnackbarHostState
 ) {
-    val viewModel = koinViewModel<ProfileViewModel>()
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val scope = rememberCoroutineScope()
 
@@ -90,11 +94,26 @@ fun ProfileScreen(
         }
     }
 
-    val pickerFactory = ImagePickerFactory()
+    ProfileScreen(
+        state = uiState,
+        onAction = { action ->
+            viewModel.onAction(action)
+        },
+        onNavigateBack = onNavigateBack
+    )
+}
 
-    // 2. Create the Picker (Pass the callback to the ViewModel)
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun ProfileScreen(
+    state: ProfileUiState,
+    onAction: (ProfileUiAction) -> Unit,
+    onNavigateBack: () -> Unit
+) {
+
+    val pickerFactory = ImagePickerFactory()
     val picker = pickerFactory.createPicker { bytes ->
-        viewModel.onLogoPicked(bytes)
+        onAction(ProfileUiAction.UpdateLogo(bytes))
     }
 
     Box(
@@ -113,7 +132,7 @@ fun ProfileScreen(
         ) {
 
             ProfileHeaderSection(
-                logoPath = uiState.logoPath,
+                logoPath = state.logoPath,
                 onEditLogoClick = { picker.pickImage() }
             )
 
@@ -123,10 +142,17 @@ fun ProfileScreen(
 
                 InputLabel(text = "Business Name")
                 CustomTextField(
-                    value = uiState.businessName,
-                    onValueChange = { viewModel.onAction(ProfileUiAction.UpdateBusinessName(it)) },
+                    value = state.businessName,
+                    onValueChange = { onAction(ProfileUiAction.UpdateBusinessName(it)) },
                     placeholderText = "Company Name",
-                    modifier = Modifier.fillMaxWidth()
+                    modifier = Modifier.fillMaxWidth(),
+                    isError = state.nameError != null,
+                    errorMessage = state.nameError,
+                    keyboardOptions = KeyboardOptions(
+                        capitalization = KeyboardCapitalization.Words,
+                        keyboardType = KeyboardType.Text,
+                        imeAction = ImeAction.Next
+                    )
                 )
 
                 Spacer(modifier = Modifier.height(24.dp))
@@ -137,25 +163,35 @@ fun ProfileScreen(
                         contentStart = {
                             InputLabel(text = "PAN Number")
                             CustomTextField(
-                                value = uiState.panNumber,
-                                onValueChange = {
-                                    viewModel.onAction(
-                                        ProfileUiAction.UpdatePanNumber(
-                                            it
-                                        )
-                                    )
-                                },
+                                value = state.panNumber,
+                                onValueChange = { onAction(ProfileUiAction.UpdatePanNumber(it)) },
                                 placeholderText = "Enter your PAN",
-                                leadingIconResId = Res.drawable.ic_card
+                                leadingIconResId = Res.drawable.ic_card,
+                                isError = state.panError != null,
+                                errorMessage = state.panError,
+                                keyboardOptions = KeyboardOptions(
+                                    capitalization = KeyboardCapitalization.Characters,
+                                    autoCorrectEnabled = false,
+                                    keyboardType = KeyboardType.Text,
+                                    imeAction = ImeAction.Next
+                                )
                             )
                         },
                         contentEnd = {
                             InputLabel(text = "GSTIN (Optional for Unregistered)")
                             CustomTextField(
-                                value = uiState.gstin,
-                                onValueChange = { viewModel.onAction(ProfileUiAction.UpdateGstin(it)) },
+                                value = state.gstin,
+                                onValueChange = { onAction(ProfileUiAction.UpdateGstin(it)) },
                                 placeholderText = "Enter your GSTIN",
-                                leadingIconResId = Res.drawable.ic_receipt_long
+                                leadingIconResId = Res.drawable.ic_receipt_long,
+                                isError = state.gstinError != null,
+                                errorMessage = state.gstinError,
+                                keyboardOptions = KeyboardOptions(
+                                    capitalization = KeyboardCapitalization.Characters,
+                                    autoCorrectEnabled = false,
+                                    keyboardType = KeyboardType.Text,
+                                    imeAction = ImeAction.Next
+                                )
                             )
                         }
                     )
@@ -170,22 +206,28 @@ fun ProfileScreen(
                         contentStart = {
                             InputLabel(text = "Address Line 1")
                             CustomTextField(
-                                value = uiState.addressLine1,
-                                onValueChange = {
-                                    viewModel.onAction(ProfileUiAction.UpdateAddressLine1(it))
-                                },
-                                placeholderText = "Enter your address"
+                                value = state.addressLine1,
+                                onValueChange = { onAction(ProfileUiAction.UpdateAddressLine1(it)) },
+                                placeholderText = "Enter your address",
+                                keyboardOptions = KeyboardOptions(
+                                    capitalization = KeyboardCapitalization.Words,
+                                    keyboardType = KeyboardType.Text,
+                                    imeAction = ImeAction.Next
+                                )
                             )
 
                         },
                         contentEnd = {
                             InputLabel(text = "Address Line 2 (Optional)")
                             CustomTextField(
-                                value = uiState.addressLine2,
-                                onValueChange = {
-                                    viewModel.onAction(ProfileUiAction.UpdateAddressLine2(it))
-                                },
-                                placeholderText = "Apartment, suite, etc."
+                                value = state.addressLine2,
+                                onValueChange = { onAction(ProfileUiAction.UpdateAddressLine2(it)) },
+                                placeholderText = "Apartment, suite, etc.",
+                                keyboardOptions = KeyboardOptions(
+                                    capitalization = KeyboardCapitalization.Words,
+                                    keyboardType = KeyboardType.Text,
+                                    imeAction = ImeAction.Next
+                                )
                             )
                         }
                     )
@@ -196,18 +238,24 @@ fun ProfileScreen(
                         contentStart = {
                             InputLabel(text = "State")
                             AppDropdownField(
-                                selectedValue = uiState.selectedState.stateName,
+                                selectedValue = state.selectedState.stateName,
                                 options = IndianState.entries,
                                 itemLabel = { it.stateName },
-                                onValueChanged = { viewModel.onAction(ProfileUiAction.UpdateState(it)) },
+                                onValueChanged = { onAction(ProfileUiAction.UpdateState(it)) },
                             )
                         },
                         contentEnd = {
                             InputLabel(text = "Pincode")
                             CustomTextField(
-                                value = uiState.pincode,
-                                onValueChange = { viewModel.onAction(ProfileUiAction.UpdatePincode(it)) },
-                                placeholderText = "Enter pincode"
+                                value = state.pincode,
+                                onValueChange = { onAction(ProfileUiAction.UpdatePincode(it)) },
+                                placeholderText = "Enter pincode",
+                                isError = state.pincodeError != null,
+                                errorMessage = state.pincodeError,
+                                keyboardOptions = KeyboardOptions(
+                                    keyboardType = KeyboardType.Number,
+                                    imeAction = ImeAction.Done
+                                )
                             )
                         }
                     )
@@ -225,8 +273,8 @@ fun ProfileScreen(
                 .align(Alignment.BottomCenter)
                 .widthIn(max = 700.dp)
                 .padding(16.dp),
-            enabled = uiState.isSaveEnabled,
-            onClick = { viewModel.onAction(ProfileUiAction.SaveProfile) }
+            enabled = state.isSaveEnabled,
+            onClick = { onAction(ProfileUiAction.SaveProfile) }
         )
     }
 }
@@ -336,8 +384,12 @@ fun CustomTextField(
     modifier: Modifier = Modifier,
     placeholderText: String? = null,
     readOnly: Boolean = false,
+    isError: Boolean = false,
+    errorMessage: String? = null,
     leadingIconResId: DrawableResource? = null,
-    trailingIcon: @Composable (() -> Unit)? = null
+    trailingIcon: @Composable (() -> Unit)? = null,
+    keyboardOptions: KeyboardOptions = KeyboardOptions.Default,
+    keyboardActions: KeyboardActions = KeyboardActions.Default
 ) {
     OutlinedTextField(
         value = value,
@@ -345,6 +397,12 @@ fun CustomTextField(
         modifier = modifier.fillMaxWidth(),
         readOnly = readOnly,
         singleLine = true,
+        isError = isError,
+        supportingText = {
+            if (errorMessage != null) {
+                Text(text = errorMessage)
+            }
+        },
         placeholder = if (placeholderText != null) {
             {
                 Text(
@@ -371,7 +429,9 @@ fun CustomTextField(
                 )
             }
         } else null,
-        trailingIcon = trailingIcon
+        trailingIcon = trailingIcon,
+        keyboardOptions = keyboardOptions,
+        keyboardActions = keyboardActions
     )
 }
 
@@ -500,13 +560,8 @@ fun ResponsiveFormRow(
 @Composable
 fun ProfileScreenPreview() {
     ProfileScreen(
-        snackbarHostState = SnackbarHostState(),
+        state = ProfileUiState(),
+        onAction = {},
         onNavigateBack = {}
     )
 }
-
-//TODO add ProfileRoot Composable
-//TODO add alphanumeric keyboard to pan and gstin
-//TODO add numeric keyboard to pincode
-//TODO validate all the text fields
-//TODO manage focus requestor

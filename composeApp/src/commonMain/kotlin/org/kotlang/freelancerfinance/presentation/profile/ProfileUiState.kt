@@ -15,6 +15,11 @@ data class ProfileUiState(
     val logoPath: String? = null,
     val isLoading: Boolean = false,
     val isSaving: Boolean = false,
+    val nameError: String? = null,
+    val panError: String? = null,
+    val gstinError: String? = null,
+    val addressError: String? = null,
+    val pincodeError: String? = null,
 ) {
     val isSaveEnabled: Boolean
         get() {
@@ -35,6 +40,12 @@ data class ProfileUiState(
                 logoPath = logoPath
             )
 
-            return currentProfile != originalProfile && businessName.isNotBlank()
+            val hasErrors = nameError != null || panError != null || gstinError != null || pincodeError != null
+            if (hasErrors) return false
+
+            val mandatoryFilled = businessName.isNotBlank() && panNumber.isNotBlank() && addressLine1.isNotBlank() && pincode.isNotBlank()
+            if (!mandatoryFilled) return false
+
+            return currentProfile != originalProfile
         }
 }
