@@ -14,8 +14,8 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import org.koin.compose.viewmodel.koinViewModel
-import org.kotlang.freelancerfinance.presentation.DashboardScreen
 import org.kotlang.freelancerfinance.presentation.client_list.ClientListScreen
+import org.kotlang.freelancerfinance.presentation.dashboard.DashboardScreenRoot
 import org.kotlang.freelancerfinance.presentation.invoice.CreateInvoiceScreen
 import org.kotlang.freelancerfinance.presentation.invoice.InvoiceViewModel
 import org.kotlang.freelancerfinance.presentation.navigation.Route
@@ -40,12 +40,11 @@ fun App() {
                 startDestination = Route.Dashboard
             ) {
 
-                // 1. Home Screen
                 composable<Route.Dashboard> {
-                    DashboardScreen(
-                        onNavigateToProfile = { navController.navigate(Route.Profile) },
-                        onNavigateToClients = { navController.navigate(Route.ClientList) },
-                        onNavigateToInvoice = { navController.navigate(Route.CreateInvoice) }
+                    DashboardScreenRoot(
+                        onEditProfile = { navController.navigate(Route.Profile) },
+                        onManageClients = { navController.navigate(Route.ClientList) },
+                        onCreateInvoice = { navController.navigate(Route.CreateInvoice) }
                     )
                 }
 
