@@ -1,5 +1,6 @@
 package org.kotlang.freelancerfinance.presentation.dashboard
 
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -19,12 +20,15 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.VerticalDivider
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -34,8 +38,10 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import coil3.compose.AsyncImage
 import freelancerfinance.composeapp.generated.resources.Res
@@ -43,6 +49,7 @@ import freelancerfinance.composeapp.generated.resources.ic_description
 import freelancerfinance.composeapp.generated.resources.ic_outline_add
 import freelancerfinance.composeapp.generated.resources.ic_person
 import freelancerfinance.composeapp.generated.resources.img_company_logo_placeholder
+import freelancerfinance.composeapp.generated.resources.img_no_invoices_placeholder
 import org.jetbrains.compose.resources.DrawableResource
 import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.ui.tooling.preview.Preview
@@ -115,41 +122,42 @@ private fun DashboardScreen(
                 )
             }
 
-            // 3. Recent Invoices Title
-            Text(
-                text = "Recent Invoices",
-                style = MaterialTheme.typography.titleMedium,
-                fontWeight = FontWeight.Bold,
-                color = MaterialTheme.colorScheme.onSurface,
-                modifier = Modifier
-                    .padding(horizontal = 16.dp)
-                    .padding(top = 0.dp, bottom = 12.dp)
-            )
-
-            // 4. Invoices List
-            Column(
-                modifier = Modifier
-                    .padding(horizontal = 16.dp)
-                    .padding(bottom = 80.dp), // Space for FAB
-                verticalArrangement = Arrangement.spacedBy(12.dp)
-            ) {
-                state.recentInvoices.forEach { invoice ->
-                    InvoiceItemCard(invoice = invoice)
+            when {
+                state.isLoading -> {
+                    Box(Modifier.size(400.dp), contentAlignment = Alignment.Center) {
+                        CircularProgressIndicator()
+                    }
+                }
+                state.showEmptyState -> {
+                    EmptyStateView(
+                        modifier = Modifier.padding(20.dp),
+                        onCreateInvoice = { onAction(DashboardUiAction.OnCreateInvoiceClick) }
+                    )
+                }
+                else -> {
+                    InvoiceListView(
+                        modifier = Modifier
+                            .widthIn(max = 700.dp)
+                            .align(Alignment.CenterHorizontally),
+                        invoices = state.recentInvoices
+                    )
                 }
             }
         }
-        FloatingActionButton(
-            modifier = Modifier
-                .align(Alignment.BottomEnd)
-                .padding(16.dp),
-            onClick = { onAction(DashboardUiAction.OnCreateInvoiceClick) },
-            content = {
-                Icon(
-                    painter = painterResource(Res.drawable.ic_outline_add),
-                    contentDescription = "Create Invoice"
-                )
-            },
-        )
+        if (state.showContent) {
+            FloatingActionButton(
+                modifier = Modifier
+                    .align(Alignment.BottomEnd)
+                    .padding(16.dp),
+                onClick = { onAction(DashboardUiAction.OnCreateInvoiceClick) },
+                content = {
+                    Icon(
+                        painter = painterResource(Res.drawable.ic_outline_add),
+                        contentDescription = "Create Invoice"
+                    )
+                }
+            )
+        }
     }
 }
 
@@ -359,12 +367,100 @@ private fun InvoiceItemCard(
     }
 }
 
+@Composable
+private fun EmptyStateView(
+    modifier: Modifier = Modifier,
+    onCreateInvoice: () -> Unit
+) {
+    Column(
+        modifier = modifier.fillMaxWidth(),
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+
+        Image(
+            painter = painterResource(Res.drawable.img_no_invoices_placeholder),
+            contentDescription = null,
+            modifier = Modifier.size(180.dp)
+        )
+
+        Spacer(modifier = Modifier.height(12.dp))
+
+        // Text Content
+        Text(
+            text = "No invoices yet",
+            style = MaterialTheme.typography.headlineSmall,
+            fontWeight = FontWeight.Bold,
+            color = MaterialTheme.colorScheme.onSurface
+        )
+        Spacer(modifier = Modifier.height(8.dp))
+        Text(
+            text = "Create your first invoice to start tracking your business earnings.",
+            style = MaterialTheme.typography.bodyMedium,
+            textAlign = TextAlign.Center,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            modifier = Modifier.padding(horizontal = 32.dp)
+        )
+
+        Spacer(modifier = Modifier.height(16.dp))
+
+        Button(
+            onClick = onCreateInvoice,
+            shape = RoundedCornerShape(12.dp)
+        ) {
+            Icon(
+                painter = painterResource(Res.drawable.ic_outline_add),
+                contentDescription = "Create Invoice",
+                modifier = Modifier.size(20.dp)
+            )
+            Spacer(modifier = Modifier.width(8.dp))
+            Text(
+                text = "Create New Invoice",
+                fontSize = 16.sp,
+                fontWeight = FontWeight.Bold
+            )
+        }
+    }
+}
+
+@Composable
+private fun InvoiceListView(
+    modifier: Modifier = Modifier,
+    invoices: List<InvoiceSummary>
+) {
+    Column(
+        modifier = modifier
+            .padding(horizontal = 16.dp)
+            .padding(bottom = 80.dp),
+        verticalArrangement = Arrangement.spacedBy(12.dp)
+    ) {
+        Row(
+            modifier = Modifier.fillMaxWidth().padding(bottom = 8.dp),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Text(
+                text = "Recent Invoices",
+                style = MaterialTheme.typography.titleMedium,
+                fontWeight = FontWeight.Bold,
+                color = MaterialTheme.colorScheme.onSurface
+            )
+            TextButton(onClick = { /* Navigate to All */ }) {
+                Text("View All")
+            }
+        }
+
+        invoices.forEach { invoice ->
+            InvoiceItemCard(invoice = invoice)
+        }
+    }
+}
+
 @Preview(showBackground = true)
 @Composable
 private fun PreviewDashboardScreen() {
     FinanceAppTheme {
         DashboardScreen(
-            state = DashboardUiState(),
+            state = DashboardUiState(isLoading = true),
             onAction = {}
         )
     }

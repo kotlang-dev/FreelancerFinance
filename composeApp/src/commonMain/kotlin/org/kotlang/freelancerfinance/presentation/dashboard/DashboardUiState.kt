@@ -8,4 +8,10 @@ data class DashboardUiState(
     val totalInvoicedValue: Double = 0.0,
     val recentInvoices: List<InvoiceSummary> = emptyList(),
     val isLoading: Boolean = false
-)
+) {
+    val showEmptyState: Boolean
+        get() = !isLoading && recentInvoices.isEmpty()
+
+    val showContent: Boolean
+        get() = recentInvoices.isNotEmpty()
+}
