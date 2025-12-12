@@ -23,3 +23,11 @@ data class InvoiceLineItem(
 ) {
     val amount: Double get() = quantity * unitPrice
 }
+
+data class InvoiceSummary(
+    val id: Long,
+    val invoiceNumber: String,
+    val date: Long,
+    val totalAmount: Double,
+    val clientName: String
+)

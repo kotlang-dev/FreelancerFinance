@@ -1,11 +1,11 @@
 package org.kotlang.freelancerfinance.presentation.invoice
 
 import org.kotlang.freelancerfinance.domain.model.Client
-import org.kotlang.freelancerfinance.domain.model.Invoice
 import org.kotlang.freelancerfinance.domain.model.InvoiceLineItem
+import org.kotlang.freelancerfinance.domain.model.InvoiceSummary
 
 data class InvoiceUiState(
-    val invoices: List<Invoice> = emptyList(),
+    val invoices: List<InvoiceSummary> = emptyList(),
     val clients: List<Client> = emptyList(),
     val isLoading: Boolean = true
 )

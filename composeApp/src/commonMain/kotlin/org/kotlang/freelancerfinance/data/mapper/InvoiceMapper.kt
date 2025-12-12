@@ -2,11 +2,13 @@ package org.kotlang.freelancerfinance.data.mapper
 
 import org.kotlang.freelancerfinance.data.local.entity.InvoiceEntity
 import org.kotlang.freelancerfinance.data.local.entity.InvoiceItemEntity
+import org.kotlang.freelancerfinance.data.local.entity.InvoiceSummaryTuple
 import org.kotlang.freelancerfinance.data.local.relation.InvoiceWithItems
 import org.kotlang.freelancerfinance.domain.model.Client
 import org.kotlang.freelancerfinance.domain.model.Invoice
 import org.kotlang.freelancerfinance.domain.model.InvoiceLineItem
 import org.kotlang.freelancerfinance.domain.model.InvoiceStatus
+import org.kotlang.freelancerfinance.domain.model.InvoiceSummary
 
 // 1. Entity -> Domain (Reading from DB)
 fun InvoiceWithItems.toDomain(client: Client): Invoice {
@@ -45,7 +47,8 @@ fun Invoice.toEntity(clientId: Long): InvoiceEntity {
         invoiceNumber = invoiceNumber,
         clientId = clientId,
         date = date,
-        status = status.ordinal
+        status = status.ordinal,
+        totalAmount = totalAmount
     )
 }
 
@@ -57,5 +60,15 @@ fun InvoiceLineItem.toEntity(invoiceId: Long): InvoiceItemEntity {
         quantity = quantity,
         unitPrice = unitPrice,
         taxRate = taxRate
+    )
+}
+
+fun InvoiceSummaryTuple.toDomain(): InvoiceSummary {
+    return InvoiceSummary(
+        id = id,
+        invoiceNumber = invoiceNumber,
+        date = date,
+        totalAmount = totalAmount,
+        clientName = clientName
     )
 }

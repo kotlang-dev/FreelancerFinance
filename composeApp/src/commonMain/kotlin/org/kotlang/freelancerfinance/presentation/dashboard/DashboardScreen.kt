@@ -1,7 +1,6 @@
 package org.kotlang.freelancerfinance.presentation.dashboard
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -29,6 +28,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.VerticalDivider
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -47,26 +47,11 @@ import org.jetbrains.compose.resources.DrawableResource
 import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.ui.tooling.preview.Preview
 import org.koin.compose.viewmodel.koinViewModel
+import org.kotlang.freelancerfinance.domain.model.InvoiceSummary
 import org.kotlang.freelancerfinance.presentation.theme.FinanceAppTheme
 import org.kotlang.freelancerfinance.presentation.theme.MoneyGreen
-import java.text.NumberFormat
-import java.util.Locale
-
-data class Invoice(
-    val id: String,
-    val clientName: String,
-    val invoiceNumber: String,
-    val amount: Double,
-    val day: String,
-    val month: String
-)
-
-val sampleInvoices = listOf(
-    Invoice("1", "Client Name Inc.", "Invoice #INV-0024", 5000.0, "15", "OCT"),
-    Invoice("2", "Innovate LLC", "Invoice #INV-0023", 12250.0, "12", "OCT"),
-    Invoice("3", "Synergy Corp", "Invoice #INV-0022", 8700.0, "28", "SEP"),
-    Invoice("4", "Alpha Stream", "Invoice #INV-0021", 2400.0, "10", "SEP"),
-)
+import org.kotlang.freelancerfinance.presentation.util.toIndianCurrency
+import org.kotlang.freelancerfinance.presentation.util.toInvoiceDateUi
 
 @Composable
 fun DashboardScreenRoot(
@@ -109,14 +94,15 @@ private fun DashboardScreen(
         ) {
             DashboardHeader(
                 companyName = state.companyName,
-                logoPath = state.logoPath
+                logoPath = state.logoPath,
+                totalInvoicedValue = state.totalInvoicedValue
             )
 
             Card(
                 modifier = Modifier
-                    .fillMaxWidth()
-                    .offset(y = (-50).dp) // Overlap logic
-                    .clickable { }
+                    .widthIn(max = 700.dp)
+                    .offset(y = (-50).dp)
+                    .align(Alignment.CenterHorizontally)
                     .padding(horizontal = 16.dp),
                 colors = CardDefaults.cardColors(
                     containerColor = MaterialTheme.colorScheme.surfaceContainerLowest
@@ -147,7 +133,7 @@ private fun DashboardScreen(
                     .padding(bottom = 80.dp), // Space for FAB
                 verticalArrangement = Arrangement.spacedBy(12.dp)
             ) {
-                sampleInvoices.forEach { invoice ->
+                state.recentInvoices.forEach { invoice ->
                     InvoiceItemCard(invoice = invoice)
                 }
             }
@@ -170,7 +156,8 @@ private fun DashboardScreen(
 @Composable
 fun DashboardHeader(
     companyName: String,
-    logoPath: String?
+    logoPath: String?,
+    totalInvoicedValue: Double
 ) {
     Box(
         modifier = Modifier
@@ -231,7 +218,7 @@ fun DashboardHeader(
             )
             Spacer(modifier = Modifier.height(4.dp))
             Text(
-                text = "₹ 1,50,000",
+                text = "₹ ${totalInvoicedValue.toIndianCurrency()}",
                 style = MaterialTheme.typography.displayMedium, // Large text
                 fontWeight = FontWeight.Bold,
                 color = MaterialTheme.colorScheme.onPrimary
@@ -301,7 +288,12 @@ fun ActionCard(
 }
 
 @Composable
-fun InvoiceItemCard(invoice: Invoice) {
+private fun InvoiceItemCard(
+    invoice: InvoiceSummary
+) {
+    val timestamp = invoice.date
+    val uiDate = remember(timestamp) { timestamp.toInvoiceDateUi() }
+
     Card(
         shape = RoundedCornerShape(12.dp),
         colors = CardDefaults.cardColors(
@@ -326,13 +318,13 @@ fun InvoiceItemCard(invoice: Invoice) {
                 modifier = Modifier.width(40.dp)
             ) {
                 Text(
-                    text = invoice.month,
+                    text = uiDate.month,
                     style = MaterialTheme.typography.labelSmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                     fontWeight = FontWeight.Bold
                 )
                 Text(
-                    text = invoice.day,
+                    text = uiDate.day,
                     style = MaterialTheme.typography.titleLarge,
                     color = MaterialTheme.colorScheme.onSurface,
                     fontWeight = FontWeight.Bold
@@ -358,7 +350,7 @@ fun InvoiceItemCard(invoice: Invoice) {
 
             // Price
             Text(
-                text = "₹ ${NumberFormat.getNumberInstance(Locale.US).format(invoice.amount)}",
+                text = "₹ ${invoice.totalAmount.toIndianCurrency()}",
                 style = MaterialTheme.typography.titleMedium,
                 fontWeight = FontWeight.Bold,
                 color = MoneyGreen

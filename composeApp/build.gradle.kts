@@ -43,6 +43,7 @@ kotlin {
             implementation(libs.kotlinx.serialization.json)
             implementation(libs.navigation.compose.kmp)
             implementation(libs.coil.compose)
+            implementation(libs.kotlinx.datetime)
 
             //Koin
             implementation(project.dependencies.platform(libs.koin.bom))

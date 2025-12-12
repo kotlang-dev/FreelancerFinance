@@ -10,5 +10,6 @@ data class InvoiceEntity(
     val invoiceNumber: String,
     val clientId: Long,
     val date: Long,
-    val status: Int
+    val status: Int,
+    val totalAmount: Double
 )

@@ -35,7 +35,7 @@ class InvoiceViewModel(
 
     // 1. Main List State
     val uiState: StateFlow<InvoiceUiState> = combine(
-        invoiceRepository.getAllInvoices(),
+        invoiceRepository.getAllInvoicesSummary(),
         clientRepository.getAllClients()
     ) { invoices, clients ->
         InvoiceUiState(invoices = invoices, clients = clients, isLoading = false)
