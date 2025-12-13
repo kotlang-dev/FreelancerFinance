@@ -1,6 +1,5 @@
 package org.kotlang.freelancerfinance.presentation.profile
 
-import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -15,38 +14,28 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.DropdownMenu
-import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
@@ -59,27 +48,27 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import coil3.compose.AsyncImage
 import freelancerfinance.composeapp.generated.resources.Res
-import freelancerfinance.composeapp.generated.resources.ic_arrow_drop_down
 import freelancerfinance.composeapp.generated.resources.ic_card
 import freelancerfinance.composeapp.generated.resources.ic_edit
 import freelancerfinance.composeapp.generated.resources.ic_outline_add
 import freelancerfinance.composeapp.generated.resources.ic_receipt_long
 import freelancerfinance.composeapp.generated.resources.img_company_logo_placeholder
 import kotlinx.coroutines.launch
-import org.jetbrains.compose.resources.DrawableResource
 import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.ui.tooling.preview.Preview
 import org.koin.compose.viewmodel.koinViewModel
 import org.kotlang.freelancerfinance.domain.model.IndianState
 import org.kotlang.freelancerfinance.presentation.design_system.bar.FinanceTopBar
+import org.kotlang.freelancerfinance.presentation.design_system.textfields.StandardDropdownField
+import org.kotlang.freelancerfinance.presentation.design_system.textfields.StandardTextField
 import org.kotlang.freelancerfinance.presentation.profile.component.ImagePickerFactory
 import org.kotlang.freelancerfinance.presentation.util.ObserveAsEvents
 
 @Composable
 fun ProfileScreenRoot(
+    snackbarHostState: SnackbarHostState,
     viewModel: ProfileViewModel = koinViewModel(),
-    onNavigateBack: () -> Unit,
-    snackbarHostState: SnackbarHostState
+    onNavigateBack: () -> Unit
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val scope = rememberCoroutineScope()
@@ -140,8 +129,8 @@ private fun ProfileScreen(
 
             Column(modifier = Modifier.padding(horizontal = 16.dp)) {
 
-                InputLabel(text = "Business Name")
-                CustomTextField(
+                StandardTextField(
+                    inputLabel = "Business Name",
                     value = state.businessName,
                     onValueChange = { onAction(ProfileUiAction.UpdateBusinessName(it)) },
                     placeholderText = "Company Name",
@@ -161,8 +150,8 @@ private fun ProfileScreen(
                 SectionCard(title = "Tax Details") {
                     ResponsiveFormRow(
                         contentStart = {
-                            InputLabel(text = "PAN Number")
-                            CustomTextField(
+                            StandardTextField(
+                                inputLabel = "PAN Number",
                                 value = state.panNumber,
                                 onValueChange = { onAction(ProfileUiAction.UpdatePanNumber(it)) },
                                 placeholderText = "Enter your PAN",
@@ -178,8 +167,8 @@ private fun ProfileScreen(
                             )
                         },
                         contentEnd = {
-                            InputLabel(text = "GSTIN (Optional for Unregistered)")
-                            CustomTextField(
+                            StandardTextField(
+                                inputLabel = "GSTIN (Optional for Unregistered)",
                                 value = state.gstin,
                                 onValueChange = { onAction(ProfileUiAction.UpdateGstin(it)) },
                                 placeholderText = "Enter your GSTIN",
@@ -204,8 +193,8 @@ private fun ProfileScreen(
 
                     ResponsiveFormRow(
                         contentStart = {
-                            InputLabel(text = "Address Line 1")
-                            CustomTextField(
+                            StandardTextField(
+                                inputLabel = "Address Line 1",
                                 value = state.addressLine1,
                                 onValueChange = { onAction(ProfileUiAction.UpdateAddressLine1(it)) },
                                 placeholderText = "Enter your address",
@@ -218,8 +207,8 @@ private fun ProfileScreen(
 
                         },
                         contentEnd = {
-                            InputLabel(text = "Address Line 2 (Optional)")
-                            CustomTextField(
+                            StandardTextField(
+                                inputLabel = "Address Line 2 (Optional)",
                                 value = state.addressLine2,
                                 onValueChange = { onAction(ProfileUiAction.UpdateAddressLine2(it)) },
                                 placeholderText = "Apartment, suite, etc.",
@@ -236,17 +225,17 @@ private fun ProfileScreen(
 
                     ResponsiveFormRow(
                         contentStart = {
-                            InputLabel(text = "State")
-                            AppDropdownField(
+                            StandardDropdownField(
+                                inputLabel = "State",
                                 selectedValue = state.selectedState.stateName,
                                 options = IndianState.entries,
                                 itemLabel = { it.stateName },
-                                onValueChanged = { onAction(ProfileUiAction.UpdateState(it)) },
+                                onValueChanged = { onAction(ProfileUiAction.UpdateState(it)) }
                             )
                         },
                         contentEnd = {
-                            InputLabel(text = "Pincode")
-                            CustomTextField(
+                            StandardTextField(
+                                inputLabel = "Pincode",
                                 value = state.pincode,
                                 onValueChange = { onAction(ProfileUiAction.UpdatePincode(it)) },
                                 placeholderText = "Enter pincode",
@@ -363,140 +352,6 @@ fun SectionCard(
                 modifier = Modifier.padding(bottom = 16.dp)
             )
             content()
-        }
-    }
-}
-
-@Composable
-fun InputLabel(text: String) {
-    Text(
-        text = text,
-        style = MaterialTheme.typography.bodySmall,
-        modifier = Modifier.padding(bottom = 6.dp),
-        color = MaterialTheme.colorScheme.onSurfaceVariant
-    )
-}
-
-@Composable
-fun CustomTextField(
-    value: String,
-    onValueChange: (String) -> Unit,
-    modifier: Modifier = Modifier,
-    placeholderText: String? = null,
-    readOnly: Boolean = false,
-    isError: Boolean = false,
-    errorMessage: String? = null,
-    leadingIconResId: DrawableResource? = null,
-    trailingIcon: @Composable (() -> Unit)? = null,
-    keyboardOptions: KeyboardOptions = KeyboardOptions.Default,
-    keyboardActions: KeyboardActions = KeyboardActions.Default
-) {
-    OutlinedTextField(
-        value = value,
-        onValueChange = onValueChange,
-        modifier = modifier.fillMaxWidth(),
-        readOnly = readOnly,
-        singleLine = true,
-        isError = isError,
-        supportingText = {
-            if (errorMessage != null) {
-                Text(text = errorMessage)
-            }
-        },
-        placeholder = if (placeholderText != null) {
-            {
-                Text(
-                    text = placeholderText,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f)
-                )
-            }
-        } else null,
-        shape = RoundedCornerShape(8.dp),
-        colors = OutlinedTextFieldDefaults.colors(
-            focusedContainerColor = MaterialTheme.colorScheme.surfaceContainerLowest,
-            unfocusedContainerColor = MaterialTheme.colorScheme.surfaceContainerLowest,
-            disabledContainerColor = MaterialTheme.colorScheme.surfaceContainerLowest,
-            cursorColor = MaterialTheme.colorScheme.primary,
-            focusedBorderColor = MaterialTheme.colorScheme.primary,
-            unfocusedBorderColor = MaterialTheme.colorScheme.outline,
-        ),
-        leadingIcon = if (leadingIconResId != null) {
-            {
-                Icon(
-                    painter = painterResource(leadingIconResId),
-                    contentDescription = null,
-                    tint = MaterialTheme.colorScheme.onSurfaceVariant
-                )
-            }
-        } else null,
-        trailingIcon = trailingIcon,
-        keyboardOptions = keyboardOptions,
-        keyboardActions = keyboardActions
-    )
-}
-
-@Composable
-fun <T> AppDropdownField(
-    selectedValue: String,
-    options: List<T>,
-    itemLabel: (T) -> String,
-    onValueChanged: (T) -> Unit
-) {
-    var expanded by remember { mutableStateOf(false) }
-
-    val rotation by animateFloatAsState(targetValue = if (expanded) 180f else 0f)
-
-    Box(modifier = Modifier.fillMaxWidth()) {
-        OutlinedTextField(
-            value = selectedValue,
-            onValueChange = {},
-            readOnly = true,
-            modifier = Modifier.fillMaxWidth(),
-            trailingIcon = {
-                Icon(
-                    painter = painterResource(Res.drawable.ic_arrow_drop_down),
-                    contentDescription = null,
-                    modifier = Modifier.rotate(rotation)
-                )
-            },
-            shape = RoundedCornerShape(12.dp),
-            colors = OutlinedTextFieldDefaults.colors(
-                focusedContainerColor = MaterialTheme.colorScheme.surfaceContainerLowest,
-                unfocusedContainerColor = MaterialTheme.colorScheme.surfaceContainerLowest,
-                disabledContainerColor = MaterialTheme.colorScheme.surfaceContainerLowest,
-                cursorColor = MaterialTheme.colorScheme.primary,
-                focusedBorderColor = MaterialTheme.colorScheme.primary,
-                unfocusedBorderColor = MaterialTheme.colorScheme.outline,
-            ),
-        )
-
-        Box(
-            modifier = Modifier
-                .matchParentSize()
-                .clickable { expanded = !expanded }
-        )
-
-        DropdownMenu(
-            expanded = expanded,
-            onDismissRequest = { expanded = false },
-            modifier = Modifier
-                .heightIn(max = 400.dp)
-                .background(MaterialTheme.colorScheme.surfaceContainer)
-        ) {
-            options.forEach { option ->
-                DropdownMenuItem(
-                    text = {
-                        Text(
-                            text = itemLabel(option),
-                            color = MaterialTheme.colorScheme.onSurface
-                        )
-                    },
-                    onClick = {
-                        onValueChanged(option)
-                        expanded = false
-                    }
-                )
-            }
         }
     }
 }
