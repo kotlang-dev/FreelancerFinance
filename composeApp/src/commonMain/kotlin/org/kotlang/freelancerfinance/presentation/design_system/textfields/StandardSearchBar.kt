@@ -34,7 +34,7 @@ import org.jetbrains.compose.ui.tooling.preview.Preview
  * @param placeholderText The text to be displayed when the search bar is empty.
  */
 @Composable
-fun FinanceSearchBar(
+fun StandardSearchBar(
     value: String,
     onValueChange: (String) -> Unit,
     modifier: Modifier = Modifier,
@@ -98,10 +98,10 @@ fun FinanceSearchBar(
     )
 }
 
-@Preview()
+@Preview
 @Composable
 private fun PreviewSearchBar() {
-    FinanceSearchBar(
+    StandardSearchBar(
         value = "k",
         onValueChange = {},
         modifier = Modifier.fillMaxWidth()

@@ -11,8 +11,7 @@ fun ClientEntity.toDomain(): Client {
         name = name,
         gstin = gstin,
         address = address,
-        state = IndianState.getByCode(stateCode),
-        email = email
+        state = IndianState.getByCode(stateCode)
     )
 }
 
@@ -23,8 +22,7 @@ fun Client.toEntity(): ClientEntity {
         name = name,
         gstin = gstin,
         address = address,
-        stateCode = state.code,
-        email = email
+        stateCode = state.code
     )
 }
 

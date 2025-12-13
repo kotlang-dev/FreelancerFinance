@@ -7,7 +7,6 @@ import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.stateIn
-import kotlinx.coroutines.launch
 import org.kotlang.freelancerfinance.domain.model.Client
 import org.kotlang.freelancerfinance.domain.repository.ClientRepository
 
@@ -54,21 +53,8 @@ class ManageClientViewModel(
             is ManageClientUiAction.OnSearchQueryChange -> {
                 _searchQuery.value = action.newQuery
             }
-            is ManageClientUiAction.OnDeleteClientClick -> {
-                deleteClient(action.clientId)
-            }
-            else -> Unit
-        }
-    }
-
-    private fun deleteClient(id: Long) {
-        viewModelScope.launch {
-            try {
-                //clientRepository.deleteClient(id)
-            } catch (e: Exception) {
-                // Ideally update state with userMessage = "Failed to delete"
-                e.printStackTrace()
-            }
+            is ManageClientUiAction.OnAddEditClientClick -> Unit
+            ManageClientUiAction.OnGoBackClick -> Unit
         }
     }
 
@@ -77,17 +63,9 @@ class ManageClientViewModel(
             id = this.id,
             name = this.name,
             locationShort = "${this.address}, ${this.state.name}",
-            status = determineStatus(this.gstin),
+            status = if (gstin.isNullOrBlank()) ClientStatus.UNREGISTERED else ClientStatus.GSTIN,
             initials = getInitials(this.name)
         )
-    }
-
-    private fun determineStatus(gstin: String?): ClientStatus {
-        return if (gstin.isNullOrBlank()) {
-            ClientStatus.UNREGISTERED
-        } else {
-            ClientStatus.GSTIN
-        }
     }
 
     private fun getInitials(name: String): String {

@@ -5,7 +5,7 @@ import org.kotlang.freelancerfinance.domain.model.Client
 
 interface ClientRepository {
     fun getAllClients(): Flow<List<Client>>
-    suspend fun insertClient(client: Client)
-    suspend fun deleteClient(client: Client)
+    suspend fun upsertClient(client: Client)
+    suspend fun deleteClient(id: Long)
     suspend fun getClientById(id: Long): Client?
 }

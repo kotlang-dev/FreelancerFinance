@@ -17,6 +17,7 @@ import org.kotlang.freelancerfinance.data.repository.InvoiceRepositoryImpl
 import org.kotlang.freelancerfinance.domain.repository.ClientRepository
 import org.kotlang.freelancerfinance.domain.repository.InvoiceRepository
 import org.kotlang.freelancerfinance.domain.repository.ProfileRepository
+import org.kotlang.freelancerfinance.presentation.add_edit_client.AddEditClientViewModel
 import org.kotlang.freelancerfinance.presentation.manage_client.ManageClientViewModel
 import org.kotlang.freelancerfinance.presentation.dashboard.DashboardViewModel
 import org.kotlang.freelancerfinance.presentation.invoice.InvoiceViewModel
@@ -41,4 +42,5 @@ val sharedModule = module {
     viewModelOf(::ManageClientViewModel)
     viewModelOf(::InvoiceViewModel)
     viewModelOf(::DashboardViewModel)
+    viewModelOf(::AddEditClientViewModel)
 }

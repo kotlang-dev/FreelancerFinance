@@ -20,7 +20,6 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
@@ -28,15 +27,10 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -50,15 +44,16 @@ import freelancerfinance.composeapp.generated.resources.img_no_clients_placehold
 import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.ui.tooling.preview.Preview
 import org.koin.compose.viewmodel.koinViewModel
-import org.kotlang.freelancerfinance.domain.model.IndianState
 import org.kotlang.freelancerfinance.presentation.design_system.bar.FinanceTopBar
 import org.kotlang.freelancerfinance.presentation.design_system.layout.StandardEmptyStateView
-import org.kotlang.freelancerfinance.presentation.design_system.textfields.FinanceSearchBar
+import org.kotlang.freelancerfinance.presentation.design_system.textfields.StandardSearchBar
+import org.kotlang.freelancerfinance.presentation.theme.MoneyGreen
 
 @Composable
 fun ManageClientScreenRoot(
     viewModel: ManageClientViewModel = koinViewModel(),
-    onNavigateBack: () -> Unit
+    onNavigateBack: () -> Unit,
+    onAddEditClient: (Long?) -> Unit
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
 
@@ -67,6 +62,7 @@ fun ManageClientScreenRoot(
         onAction = { action ->
             when (action) {
                 ManageClientUiAction.OnGoBackClick -> onNavigateBack()
+                is ManageClientUiAction.OnAddEditClientClick -> onAddEditClient(action.clientId)
                 else -> viewModel.onAction(action)
             }
         }
@@ -84,7 +80,6 @@ private fun ManageClientScreen(
         modifier = Modifier
             .fillMaxSize()
             .background(MaterialTheme.colorScheme.background),
-        contentAlignment = Alignment.TopCenter
     ) {
         Column(
             modifier = Modifier
@@ -96,7 +91,7 @@ private fun ManageClientScreen(
                 onNavigateBack = { onAction(ManageClientUiAction.OnGoBackClick) }
             )
 
-            FinanceSearchBar(
+            StandardSearchBar(
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(horizontal = 16.dp, vertical = 8.dp),
@@ -120,7 +115,7 @@ private fun ManageClientScreen(
                     title = "No clients yet",
                     description = "Add your customers to manage invoices and track payments easily.",
                     buttonText = "Add First Client",
-                    onButtonClick = { /* Open Add Client Dialog */ }
+                    onButtonClick = { onAction(ManageClientUiAction.OnAddEditClientClick(null)) }
                 )
             }
 
@@ -132,7 +127,12 @@ private fun ManageClientScreen(
                     modifier = Modifier.padding(horizontal = 16.dp)
                 ) {
                     items(state.filteredClients) { client ->
-                        ClientItemCard(client)
+                        ClientItemCard(
+                            client = client,
+                            onCardClick = {
+                                onAction(ManageClientUiAction.OnAddEditClientClick(client.id))
+                            }
+                        )
                     }
                 }
             }
@@ -143,7 +143,7 @@ private fun ManageClientScreen(
                 modifier = Modifier
                     .align(Alignment.BottomEnd)
                     .padding(16.dp),
-                onClick = { },
+                onClick = { onAction(ManageClientUiAction.OnAddEditClientClick(null)) },
                 content = {
                     Icon(
                         painter = painterResource(Res.drawable.ic_outline_add),
@@ -157,7 +157,10 @@ private fun ManageClientScreen(
 }
 
 @Composable
-private fun ClientItemCard(client: ClientListItemUi) {
+private fun ClientItemCard(
+    client: ClientListItemUi,
+    onCardClick: () -> Unit
+) {
     Card(
         shape = RoundedCornerShape(12.dp),
         colors = CardDefaults.cardColors(
@@ -165,7 +168,7 @@ private fun ClientItemCard(client: ClientListItemUi) {
         ),
         border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.3f)),
         elevation = CardDefaults.cardElevation(defaultElevation = 0.5.dp),
-        modifier = Modifier.fillMaxWidth()
+        modifier = Modifier.fillMaxWidth().clickable { onCardClick() }
     ) {
         Row(
             modifier = Modifier
@@ -238,91 +241,22 @@ private fun ClientAvatar(
 
 @Composable
 private fun StatusChip(status: ClientStatus) {
-    // Define colors based on status
     val (text, color) = when (status) {
-        ClientStatus.GSTIN -> "GSTIN" to Color(0xFF2E7D32) // Green
+        ClientStatus.GSTIN -> "GSTIN" to MoneyGreen
         ClientStatus.UNREGISTERED -> "Unregistered" to Color.Gray
-        ClientStatus.PENDING -> "Pending" to Color(0xFFF57C00) // Orange
     }
 
     Surface(
         shape = RoundedCornerShape(4.dp),
         border = BorderStroke(1.dp, color.copy(alpha = 0.5f)),
-        color = color.copy(alpha = 0.08f) // Very light tint background
+        color = color.copy(alpha = 0.08f)
     ) {
         Text(
             text = text,
-            style = MaterialTheme.typography.labelSmall, // Tiny text
+            style = MaterialTheme.typography.labelSmall,
             color = color,
             modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp)
         )
-    }
-}
-
-
-@Composable
-fun AddClientDialog(
-    onDismiss: () -> Unit,
-    onConfirm: (String, String?, String, IndianState, String?) -> Unit
-) {
-    // Local state for the form inputs
-    var name by remember { mutableStateOf("") }
-    var gstin by remember { mutableStateOf("") }
-    var address by remember { mutableStateOf("") }
-    var email by remember { mutableStateOf("") }
-    var selectedState by remember { mutableStateOf(IndianState.MAHARASHTRA) }
-
-    // A simple full-screen "Dialog" style overlay
-    Box(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(Color.Black.copy(alpha = 0.5f))
-            .clickable(enabled = false) {}, // Block clicks behind
-        contentAlignment = Alignment.Center
-    ) {
-        Card(modifier = Modifier.padding(16.dp).fillMaxWidth(0.9f)) {
-            Column(
-                modifier = Modifier.padding(16.dp),
-                verticalArrangement = Arrangement.spacedBy(8.dp)
-            ) {
-                Text("Add New Client")
-
-                OutlinedTextField(
-                    value = name,
-                    onValueChange = { name = it },
-                    label = { Text("Client Name") }
-                )
-
-                OutlinedTextField(
-                    value = gstin,
-                    onValueChange = { gstin = it },
-                    label = { Text("GSTIN (Optional)") }
-                )
-
-                // Simplified State Switcher (Cycle through logic)
-                Button(onClick = {
-                    val nextOrdinal = (selectedState.ordinal + 1) % IndianState.entries.size
-                    selectedState = IndianState.entries[nextOrdinal]
-                }) {
-                    Text("State: ${selectedState.stateName}")
-                }
-
-                OutlinedTextField(
-                    value = address,
-                    onValueChange = { address = it },
-                    label = { Text("Address") }
-                )
-
-                Row(horizontalArrangement = Arrangement.End, modifier = Modifier.fillMaxWidth()) {
-                    TextButton(onClick = onDismiss) { Text("Cancel") }
-                    Button(onClick = {
-                        if (name.isNotBlank()) {
-                            onConfirm(name, gstin, address, selectedState, email)
-                        }
-                    }) { Text("Add") }
-                }
-            }
-        }
     }
 }
 

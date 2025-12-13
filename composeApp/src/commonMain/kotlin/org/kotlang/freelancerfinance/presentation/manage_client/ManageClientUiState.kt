@@ -23,4 +23,4 @@ data class ClientListItemUi(
     val initials: String
 )
 
-enum class ClientStatus { GSTIN, UNREGISTERED, PENDING }
+enum class ClientStatus { GSTIN, UNREGISTERED }

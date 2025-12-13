@@ -10,6 +10,5 @@ data class ClientEntity(
     val name: String,
     val gstin: String?,
     val address: String,
-    val stateCode: Int,
-    val email: String?
+    val stateCode: Int
 )

@@ -5,6 +5,5 @@ data class Client(
     val name: String,
     val gstin: String?,
     val address: String,
-    val state: IndianState,
-    val email: String?
+    val state: IndianState
 )

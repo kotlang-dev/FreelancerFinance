@@ -15,6 +15,8 @@ import org.kotlang.freelancerfinance.domain.model.BusinessProfile
 import org.kotlang.freelancerfinance.domain.model.IndianState
 import org.kotlang.freelancerfinance.domain.repository.FileSystemHelper
 import org.kotlang.freelancerfinance.domain.repository.ProfileRepository
+import org.kotlang.freelancerfinance.domain.usecase.TextFieldValidator
+import org.kotlang.freelancerfinance.domain.usecase.ValidationResult
 
 class ProfileViewModel(
     private val repository: ProfileRepository,
@@ -71,7 +73,7 @@ class ProfileViewModel(
     }
 
     private fun updateBusinessName(name: String) {
-        val result = ProfileValidator.validateBusinessName(name)
+        val result = TextFieldValidator.validateBusinessName(name)
         val error = if (result is ValidationResult.Error) result.message else null
 
         _uiState.update {
@@ -81,7 +83,7 @@ class ProfileViewModel(
 
     private fun updatePanNumber(pan: String) {
         val capsPan = pan.uppercase()
-        val result = ProfileValidator.validatePan(capsPan)
+        val result = TextFieldValidator.validatePan(capsPan)
         val error = if (result is ValidationResult.Error) result.message else null
 
         _uiState.update {
@@ -94,11 +96,11 @@ class ProfileViewModel(
     private fun updateGstin(gstin: String) {
         val capsGstin = gstin.uppercase()
         var error: String? = null
-        val formatResult = ProfileValidator.validateGstin(capsGstin)
+        val formatResult = TextFieldValidator.validateGstin(capsGstin)
         if (formatResult is ValidationResult.Error) {
             error = formatResult.message
         } else {
-            val matchResult = ProfileValidator.validateGstinMatchesPan(capsGstin, _uiState.value.panNumber)
+            val matchResult = TextFieldValidator.validateGstinMatchesPan(capsGstin, _uiState.value.panNumber)
             if (matchResult is ValidationResult.Error) error = matchResult.message
         }
 
@@ -120,7 +122,7 @@ class ProfileViewModel(
     }
 
     private fun updatePincode(pincode: String) {
-        val result = ProfileValidator.validatePincode(pincode)
+        val result = TextFieldValidator.validatePincode(pincode)
         val error = if (result is ValidationResult.Error) result.message else null
         _uiState.update {
             it.copy(pincode = pincode, pincodeError = error)
@@ -186,7 +188,7 @@ class ProfileViewModel(
     }
 
     private fun validateGstinConsistency(gstin: String, pan: String) {
-        val matchResult = ProfileValidator.validateGstinMatchesPan(gstin, pan)
+        val matchResult = TextFieldValidator.validateGstinMatchesPan(gstin, pan)
         val error = if (matchResult is ValidationResult.Error) matchResult.message else null
         _uiState.update { it.copy(gstinError = error) }
     }

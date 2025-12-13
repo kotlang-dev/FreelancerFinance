@@ -19,12 +19,12 @@ class ClientRepositoryImpl(
         }
     }
 
-    override suspend fun insertClient(client: Client) {
-        dao.insertClient(client.toEntity())
+    override suspend fun upsertClient(client: Client) {
+        dao.upsertClient(client.toEntity())
     }
 
-    override suspend fun deleteClient(client: Client) {
-        dao.deleteClient(client.toEntity())
+    override suspend fun deleteClient(id: Long) {
+        dao.deleteClientById(id)
     }
 
     override suspend fun getClientById(id: Long): Client? {

@@ -1,6 +1,6 @@
-package org.kotlang.freelancerfinance.presentation.profile
+package org.kotlang.freelancerfinance.domain.usecase
 
-object ProfileValidator {
+object TextFieldValidator {
 
     // Regex Patterns
     private val PAN_REGEX = Regex("[A-Z]{5}[0-9]{4}[A-Z]{1}")
@@ -41,6 +41,11 @@ object ProfileValidator {
         val embeddedPan = gstin.substring(2, 12)
         return if (embeddedPan == pan) ValidationResult.Valid 
                else ValidationResult.Error("GSTIN does not match the entered PAN")
+    }
+
+    fun validateAddress(address: String): ValidationResult {
+        if (address.isBlank()) return ValidationResult.Error("Address cannot be empty")
+        return ValidationResult.Valid
     }
 }
 

@@ -14,6 +14,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import org.koin.compose.viewmodel.koinViewModel
+import org.kotlang.freelancerfinance.presentation.add_edit_client.AddEditClientRoot
 import org.kotlang.freelancerfinance.presentation.dashboard.DashboardScreenRoot
 import org.kotlang.freelancerfinance.presentation.invoice.CreateInvoiceScreen
 import org.kotlang.freelancerfinance.presentation.invoice.InvoiceViewModel
@@ -43,7 +44,7 @@ fun App() {
                 composable<Route.Dashboard> {
                     DashboardScreenRoot(
                         onEditProfile = { navController.navigate(Route.Profile) },
-                        onManageClients = { navController.navigate(Route.ClientList) },
+                        onManageClients = { navController.navigate(Route.ManageClient) },
                         onCreateInvoice = { navController.navigate(Route.CreateInvoice) }
                     )
                 }
@@ -55,9 +56,17 @@ fun App() {
                     )
                 }
 
-                composable<Route.ClientList> {
+                composable<Route.ManageClient> {
                     ManageClientScreenRoot (
-                        onNavigateBack = { navController.navigateUp() }
+                        onNavigateBack = { navController.navigateUp() },
+                        onAddEditClient = { navController.navigate(Route.AddEditClient(it)) }
+                    )
+                }
+
+                composable<Route.AddEditClient> {
+                    AddEditClientRoot(
+                        snackbarHostState = snackbarHostState,
+                        onNavigateBack = { navController.popBackStack() }
                     )
                 }
 
@@ -70,7 +79,7 @@ fun App() {
                             navController.popBackStack(Route.Dashboard, inclusive = false)
                         },
                         onNavigateBack = { navController.navigateUp() },
-                        onAddNewClient = { navController.navigate(Route.ClientList) }
+                        onAddNewClient = { navController.navigate(Route.AddEditClient(null)) }
                     )
                 }
             }
