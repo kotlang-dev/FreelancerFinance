@@ -14,10 +14,10 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import org.koin.compose.viewmodel.koinViewModel
-import org.kotlang.freelancerfinance.presentation.client_list.ClientListScreen
 import org.kotlang.freelancerfinance.presentation.dashboard.DashboardScreenRoot
 import org.kotlang.freelancerfinance.presentation.invoice.CreateInvoiceScreen
 import org.kotlang.freelancerfinance.presentation.invoice.InvoiceViewModel
+import org.kotlang.freelancerfinance.presentation.manage_client.ManageClientScreenRoot
 import org.kotlang.freelancerfinance.presentation.navigation.Route
 import org.kotlang.freelancerfinance.presentation.profile.ProfileScreenRoot
 import org.kotlang.freelancerfinance.presentation.theme.FinanceAppTheme
@@ -56,7 +56,7 @@ fun App() {
                 }
 
                 composable<Route.ClientList> {
-                    ClientListScreen(
+                    ManageClientScreenRoot (
                         onNavigateBack = { navController.navigateUp() }
                     )
                 }

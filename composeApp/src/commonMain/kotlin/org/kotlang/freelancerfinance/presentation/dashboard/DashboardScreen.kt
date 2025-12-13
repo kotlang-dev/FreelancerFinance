@@ -1,6 +1,5 @@
 package org.kotlang.freelancerfinance.presentation.dashboard
 
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -20,7 +19,6 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
@@ -38,10 +36,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import coil3.compose.AsyncImage
 import freelancerfinance.composeapp.generated.resources.Res
@@ -55,6 +51,7 @@ import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.ui.tooling.preview.Preview
 import org.koin.compose.viewmodel.koinViewModel
 import org.kotlang.freelancerfinance.domain.model.InvoiceSummary
+import org.kotlang.freelancerfinance.presentation.design_system.layout.StandardEmptyStateView
 import org.kotlang.freelancerfinance.presentation.theme.FinanceAppTheme
 import org.kotlang.freelancerfinance.presentation.theme.MoneyGreen
 import org.kotlang.freelancerfinance.presentation.util.toIndianCurrency
@@ -129,9 +126,13 @@ private fun DashboardScreen(
                     }
                 }
                 state.showEmptyState -> {
-                    EmptyStateView(
-                        modifier = Modifier.padding(20.dp),
-                        onCreateInvoice = { onAction(DashboardUiAction.OnCreateInvoiceClick) }
+                    StandardEmptyStateView(
+                        modifier = Modifier.fillMaxWidth().padding(24.dp),
+                        imageResId = Res.drawable.img_no_invoices_placeholder,
+                        title = "No invoices yet",
+                        description = "Create your first invoice to start tracking your business earnings.",
+                        buttonText = "Create New Invoice",
+                        onButtonClick = { onAction(DashboardUiAction.OnCreateInvoiceClick)}
                     )
                 }
                 else -> {
@@ -368,61 +369,6 @@ private fun InvoiceItemCard(
 }
 
 @Composable
-private fun EmptyStateView(
-    modifier: Modifier = Modifier,
-    onCreateInvoice: () -> Unit
-) {
-    Column(
-        modifier = modifier.fillMaxWidth(),
-        horizontalAlignment = Alignment.CenterHorizontally
-    ) {
-
-        Image(
-            painter = painterResource(Res.drawable.img_no_invoices_placeholder),
-            contentDescription = null,
-            modifier = Modifier.size(180.dp)
-        )
-
-        Spacer(modifier = Modifier.height(12.dp))
-
-        // Text Content
-        Text(
-            text = "No invoices yet",
-            style = MaterialTheme.typography.headlineSmall,
-            fontWeight = FontWeight.Bold,
-            color = MaterialTheme.colorScheme.onSurface
-        )
-        Spacer(modifier = Modifier.height(8.dp))
-        Text(
-            text = "Create your first invoice to start tracking your business earnings.",
-            style = MaterialTheme.typography.bodyMedium,
-            textAlign = TextAlign.Center,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-            modifier = Modifier.padding(horizontal = 32.dp)
-        )
-
-        Spacer(modifier = Modifier.height(16.dp))
-
-        Button(
-            onClick = onCreateInvoice,
-            shape = RoundedCornerShape(12.dp)
-        ) {
-            Icon(
-                painter = painterResource(Res.drawable.ic_outline_add),
-                contentDescription = "Create Invoice",
-                modifier = Modifier.size(20.dp)
-            )
-            Spacer(modifier = Modifier.width(8.dp))
-            Text(
-                text = "Create New Invoice",
-                fontSize = 16.sp,
-                fontWeight = FontWeight.Bold
-            )
-        }
-    }
-}
-
-@Composable
 private fun InvoiceListView(
     modifier: Modifier = Modifier,
     invoices: List<InvoiceSummary>
@@ -460,7 +406,7 @@ private fun InvoiceListView(
 private fun PreviewDashboardScreen() {
     FinanceAppTheme {
         DashboardScreen(
-            state = DashboardUiState(isLoading = true),
+            state = DashboardUiState(),
             onAction = {}
         )
     }
