@@ -13,6 +13,7 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import org.kotlang.freelancerfinance.domain.model.Client
 import org.kotlang.freelancerfinance.domain.repository.ClientRepository
+import org.kotlang.freelancerfinance.presentation.util.getInitials
 
 class ManageClientViewModel(
     private val clientRepository: ClientRepository
@@ -67,16 +68,7 @@ class ManageClientViewModel(
             name = this.name,
             locationShort = "${this.address}, ${this.state.name}",
             status = if (gstin.isNullOrBlank()) ClientStatus.UNREGISTERED else ClientStatus.GSTIN,
-            initials = getInitials(this.name)
+            initials = this.name.getInitials()
         )
-    }
-
-    private fun getInitials(name: String): String {
-        val parts = name.trim().split(" ")
-        return when {
-            parts.isEmpty() -> ""
-            parts.size == 1 -> parts[0].take(2).uppercase()
-            else -> "${parts[0].first()}${parts[1].first()}".uppercase()
-        }
     }
 }

@@ -1,5 +1,6 @@
-package org.kotlang.freelancerfinance.presentation.manage_client
+package org.kotlang.freelancerfinance.presentation.manage_services
 
+import androidx.compose.runtime.Composable
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -25,42 +26,38 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import freelancerfinance.composeapp.generated.resources.Res
 import freelancerfinance.composeapp.generated.resources.ic_outline_add
 import freelancerfinance.composeapp.generated.resources.img_no_clients_placeholder
 import org.jetbrains.compose.resources.painterResource
-import org.jetbrains.compose.ui.tooling.preview.Preview
 import org.koin.compose.viewmodel.koinViewModel
 import org.kotlang.freelancerfinance.presentation.design_system.bar.FinanceTopBar
 import org.kotlang.freelancerfinance.presentation.design_system.layout.InitialsAvatar
 import org.kotlang.freelancerfinance.presentation.design_system.layout.StandardEmptyStateView
 import org.kotlang.freelancerfinance.presentation.design_system.textfields.StandardSearchBar
-import org.kotlang.freelancerfinance.presentation.theme.MoneyGreen
 
 @Composable
-fun ManageClientScreenRoot(
-    viewModel: ManageClientViewModel = koinViewModel(),
+fun ManageServicesScreenRoot(
+    viewModel: ManageServicesViewModel = koinViewModel(),
     onNavigateBack: () -> Unit,
-    onAddEditClient: (Long?) -> Unit
+    onAddEditService: (Long?) -> Unit
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
 
-    ManageClientScreen(
+    ManageServicesScreen(
         state = uiState,
         onAction = { action ->
             when (action) {
-                ManageClientUiAction.OnGoBackClick -> onNavigateBack()
-                is ManageClientUiAction.OnAddEditClientClick -> onAddEditClient(action.clientId)
+                ManageServicesUiAction.OnGoBackClick -> onNavigateBack()
+                is ManageServicesUiAction.OnAddEditServiceClick -> onAddEditService(action.serviceId)
                 else -> viewModel.onAction(action)
             }
         }
@@ -69,11 +66,10 @@ fun ManageClientScreenRoot(
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-private fun ManageClientScreen(
-    state: ManageClientUiState,
-    onAction: (ManageClientUiAction) -> Unit
+private fun ManageServicesScreen(
+    state: ManageServicesUiState,
+    onAction: (ManageServicesUiAction) -> Unit
 ) {
-
     Box(
         modifier = Modifier
             .fillMaxSize()
@@ -86,14 +82,13 @@ private fun ManageClientScreen(
                 .align(Alignment.TopCenter)
                 .padding(top = 60.dp)
         ) {
-
             StandardSearchBar(
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(horizontal = 16.dp, vertical = 8.dp),
                 value = state.searchQuery,
-                onValueChange = { onAction(ManageClientUiAction.OnSearchQueryChange(it)) },
-                placeholderText = "Search clients..."
+                onValueChange = { onAction(ManageServicesUiAction.OnSearchQueryChange(it)) },
+                placeholderText = "Search services..."
             )
 
             if (state.isLoading) {
@@ -107,26 +102,26 @@ private fun ManageClientScreen(
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(top = 120.dp, bottom = 24.dp, start = 24.dp, end = 24.dp),
-                    imageResId = Res.drawable.img_no_clients_placeholder,
-                    title = "No clients yet",
-                    description = "Add your customers to manage invoices and track payments easily.",
-                    buttonText = "Add First Client",
-                    onButtonClick = { onAction(ManageClientUiAction.OnAddEditClientClick(null)) }
+                    imageResId = Res.drawable.img_no_clients_placeholder, //TODO change this
+                    title = "No services saved",
+                    description = "Save your frequently used items (like 'Hourly Consulting') to create invoices faster.",
+                    buttonText = "Add First Service",
+                    onButtonClick = { onAction(ManageServicesUiAction.OnAddEditServiceClick(null)) }
                 )
             }
 
             if (state.showContent) {
                 Spacer(modifier = Modifier.height(8.dp))
                 LazyColumn(
-                    contentPadding = PaddingValues(bottom = 80.dp),
+                    contentPadding = PaddingValues(bottom = 80.dp), // Space for FAB
                     verticalArrangement = Arrangement.spacedBy(12.dp),
                     modifier = Modifier.padding(horizontal = 16.dp)
                 ) {
-                    items(state.filteredClients) { client ->
-                        ClientItemCard(
-                            client = client,
+                    items(state.filteredServices) { service ->
+                        ServiceItemCard(
+                            service = service,
                             onCardClick = {
-                                onAction(ManageClientUiAction.OnAddEditClientClick(client.id))
+                                onAction(ManageServicesUiAction.OnAddEditServiceClick(service.id))
                             }
                         )
                     }
@@ -135,8 +130,8 @@ private fun ManageClientScreen(
         }
 
         FinanceTopBar(
-            title = "Manage Clients",
-            onNavigateBack = { onAction(ManageClientUiAction.OnGoBackClick) }
+            title = "Manage Services",
+            onNavigateBack = { onAction(ManageServicesUiAction.OnGoBackClick) }
         )
 
         if (state.showFab) {
@@ -144,22 +139,21 @@ private fun ManageClientScreen(
                 modifier = Modifier
                     .align(Alignment.BottomEnd)
                     .padding(16.dp),
-                onClick = { onAction(ManageClientUiAction.OnAddEditClientClick(null)) },
+                onClick = { onAction(ManageServicesUiAction.OnAddEditServiceClick(null)) },
                 content = {
                     Icon(
                         painter = painterResource(Res.drawable.ic_outline_add),
-                        contentDescription = "Add Client"
+                        contentDescription = "Add Service"
                     )
                 }
             )
         }
-
     }
 }
 
 @Composable
-private fun ClientItemCard(
-    client: ClientListItemUi,
+private fun ServiceItemCard(
+    service: ServiceListItemUi,
     onCardClick: () -> Unit
 ) {
     Card(
@@ -178,63 +172,44 @@ private fun ClientItemCard(
             verticalAlignment = Alignment.CenterVertically
         ) {
             InitialsAvatar(
-                name = client.name,
-                initials = client.initials
+                name = service.name,
+                initials = service.initials
             )
 
             Spacer(modifier = Modifier.width(16.dp))
 
-            // 2. Info Column
             Column(modifier = Modifier.weight(1f)) {
+                Text(
+                    text = service.name,
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.Bold,
+                    color = MaterialTheme.colorScheme.onSurface,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis
+                )
+
+                Spacer(modifier = Modifier.height(4.dp))
+
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Text(
-                        text = client.name,
-                        style = MaterialTheme.typography.titleMedium,
-                        fontWeight = FontWeight.Bold,
-                        color = MaterialTheme.colorScheme.onSurface
+                        text = "₹ ${service.formattedPrice}", // e.g. "₹ 50,000"
+                        style = MaterialTheme.typography.bodyMedium,
+                        fontWeight = FontWeight.SemiBold,
+                        color = MaterialTheme.colorScheme.primary
                     )
-                    Spacer(modifier = Modifier.width(8.dp))
 
-                    // Status Chip
-                    StatusChip(status = client.status)
+                    Text(
+                        text = " • ",
+                        color = MaterialTheme.colorScheme.outline
+                    )
+
+                    Text(
+                        text = "${service.taxRate}% GST",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
                 }
-                Spacer(modifier = Modifier.height(4.dp))
-                Text(
-                    text = client.locationShort,
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
             }
         }
     }
-}
-
-@Composable
-private fun StatusChip(status: ClientStatus) {
-    val (text, color) = when (status) {
-        ClientStatus.GSTIN -> "GSTIN" to MoneyGreen
-        ClientStatus.UNREGISTERED -> "Unregistered" to Color.Gray
-    }
-
-    Surface(
-        shape = RoundedCornerShape(4.dp),
-        border = BorderStroke(1.dp, color.copy(alpha = 0.5f)),
-        color = color.copy(alpha = 0.08f)
-    ) {
-        Text(
-            text = text,
-            style = MaterialTheme.typography.labelSmall,
-            color = color,
-            modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp)
-        )
-    }
-}
-
-@Preview
-@Composable
-fun PreviewClientListScreen() {
-    ManageClientScreen(
-        state = ManageClientUiState(),
-        onAction = {}
-    )
 }

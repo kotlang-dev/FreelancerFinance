@@ -24,6 +24,7 @@ import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -41,6 +42,7 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import coil3.compose.AsyncImage
 import freelancerfinance.composeapp.generated.resources.Res
+import freelancerfinance.composeapp.generated.resources.ic_card
 import freelancerfinance.composeapp.generated.resources.ic_description
 import freelancerfinance.composeapp.generated.resources.ic_outline_add
 import freelancerfinance.composeapp.generated.resources.ic_person
@@ -61,6 +63,7 @@ import org.kotlang.freelancerfinance.presentation.util.toInvoiceDateUi
 fun DashboardScreenRoot(
     viewModel: DashboardViewModel = koinViewModel(),
     onManageClients: () -> Unit,
+    onManageServices: () -> Unit,
     onEditProfile: () -> Unit,
     onCreateInvoice: () -> Unit
 ) {
@@ -71,6 +74,7 @@ fun DashboardScreenRoot(
         onAction = { action ->
             when (action) {
                 DashboardUiAction.OnManageClientsClick -> onManageClients()
+                DashboardUiAction.OnManageServicesClick -> onManageServices()
                 DashboardUiAction.OnEditProfileClick -> onEditProfile()
                 DashboardUiAction.OnCreateInvoiceClick -> onCreateInvoice()
             }
@@ -99,7 +103,8 @@ private fun DashboardScreen(
             DashboardHeader(
                 companyName = state.companyName,
                 logoPath = state.logoPath,
-                totalInvoicedValue = state.totalInvoicedValue
+                totalInvoicedValue = state.totalInvoicedValue,
+                onEditProfileClick = { onAction(DashboardUiAction.OnEditProfileClick) }
             )
 
             Card(
@@ -115,7 +120,7 @@ private fun DashboardScreen(
             ) {
                 ActionButtonsRow(
                     onManageClientsClick = { onAction(DashboardUiAction.OnManageClientsClick) },
-                    onEditProfileClick = { onAction(DashboardUiAction.OnEditProfileClick) }
+                    onManageServicesClick = { onAction(DashboardUiAction.OnManageServicesClick) }
                 )
             }
 
@@ -166,7 +171,8 @@ private fun DashboardScreen(
 fun DashboardHeader(
     companyName: String,
     logoPath: String?,
-    totalInvoicedValue: Double
+    totalInvoicedValue: Double,
+    onEditProfileClick: () -> Unit
 ) {
     Box(
         modifier = Modifier
@@ -184,6 +190,19 @@ fun DashboardHeader(
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically
         ) {
+            AsyncImage(
+                model = logoPath,
+                contentDescription = "Company Logo",
+                modifier = Modifier
+                    .size(48.dp)
+                    .clip(CircleShape),
+                contentScale = ContentScale.Crop,
+                error = painterResource(Res.drawable.img_company_logo_placeholder),
+                fallback = painterResource(Res.drawable.img_company_logo_placeholder)
+            )
+
+            Spacer(modifier = Modifier.width(8.dp))
+
             Column(
                 modifier = Modifier.weight(1f)
             ) {
@@ -201,16 +220,16 @@ fun DashboardHeader(
                 )
             }
 
-            AsyncImage(
-                model = logoPath,
-                contentDescription = "Company Logo",
-                modifier = Modifier
-                    .size(48.dp)
-                    .clip(CircleShape),
-                contentScale = ContentScale.Crop,
-                error = painterResource(Res.drawable.img_company_logo_placeholder),
-                fallback = painterResource(Res.drawable.img_company_logo_placeholder)
-            )
+            IconButton(
+                onClick = onEditProfileClick
+            ) {
+                Icon(
+                    painter = painterResource(Res.drawable.ic_card),
+                    contentDescription = null,
+                    tint = MaterialTheme.colorScheme.onPrimary,
+                    modifier = Modifier.size(32.dp)
+                )
+            }
         }
 
         Column(
@@ -240,7 +259,7 @@ fun DashboardHeader(
 fun ActionButtonsRow(
     modifier: Modifier = Modifier,
     onManageClientsClick: () -> Unit,
-    onEditProfileClick: () -> Unit
+    onManageServicesClick: () -> Unit
 ) {
     Row(
         modifier = modifier.fillMaxWidth(),
@@ -258,10 +277,10 @@ fun ActionButtonsRow(
             color = MaterialTheme.colorScheme.primary
         )
         ActionCard(
-            text = "Edit Profile",
+            text = "Manage Services",
             iconResId = Res.drawable.ic_description,
             modifier = Modifier.weight(1f),
-            onClick = onEditProfileClick
+            onClick = onManageServicesClick
         )
     }
 }

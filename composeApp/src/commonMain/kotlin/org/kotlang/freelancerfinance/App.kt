@@ -15,10 +15,12 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import org.koin.compose.viewmodel.koinViewModel
 import org.kotlang.freelancerfinance.presentation.add_edit_client.AddEditClientRoot
+import org.kotlang.freelancerfinance.presentation.add_edit_service.AddEditServiceRoot
 import org.kotlang.freelancerfinance.presentation.dashboard.DashboardScreenRoot
 import org.kotlang.freelancerfinance.presentation.invoice.CreateInvoiceScreen
 import org.kotlang.freelancerfinance.presentation.invoice.InvoiceViewModel
 import org.kotlang.freelancerfinance.presentation.manage_client.ManageClientScreenRoot
+import org.kotlang.freelancerfinance.presentation.manage_services.ManageServicesScreenRoot
 import org.kotlang.freelancerfinance.presentation.navigation.Route
 import org.kotlang.freelancerfinance.presentation.profile.ProfileScreenRoot
 import org.kotlang.freelancerfinance.presentation.theme.FinanceAppTheme
@@ -44,7 +46,8 @@ fun App() {
                 composable<Route.Dashboard> {
                     DashboardScreenRoot(
                         onEditProfile = { navController.navigate(Route.Profile) },
-                        onManageClients = { navController.navigate(Route.ManageClient) },
+                        onManageClients = { navController.navigate(Route.ManageClients) },
+                        onManageServices = { navController.navigate(Route.ManageServices) },
                         onCreateInvoice = { navController.navigate(Route.CreateInvoice) }
                     )
                 }
@@ -56,8 +59,8 @@ fun App() {
                     )
                 }
 
-                composable<Route.ManageClient> {
-                    ManageClientScreenRoot (
+                composable<Route.ManageClients> {
+                    ManageClientScreenRoot(
                         onNavigateBack = { navController.navigateUp() },
                         onAddEditClient = { navController.navigate(Route.AddEditClient(it)) }
                     )
@@ -65,6 +68,20 @@ fun App() {
 
                 composable<Route.AddEditClient> {
                     AddEditClientRoot(
+                        snackbarHostState = snackbarHostState,
+                        onNavigateBack = { navController.popBackStack() }
+                    )
+                }
+
+                composable<Route.ManageServices> {
+                    ManageServicesScreenRoot(
+                        onNavigateBack = { navController.navigateUp() },
+                        onAddEditService = { navController.navigate(Route.AddEditService(it)) }
+                    )
+                }
+
+                composable<Route.AddEditService> {
+                    AddEditServiceRoot(
                         snackbarHostState = snackbarHostState,
                         onNavigateBack = { navController.popBackStack() }
                     )

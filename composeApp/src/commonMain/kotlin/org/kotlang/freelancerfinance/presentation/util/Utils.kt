@@ -32,3 +32,24 @@ fun Double.toIndianCurrency(): String {
     formatter.maximumFractionDigits = 0
     return formatter.format(this)
 }
+
+fun String?.getInitials(): String {
+    if (this.isNullOrBlank()) return ""
+
+    val parts = this.trim().split("\\s+".toRegex())
+
+    return when {
+        parts.isEmpty() -> ""
+        // Case: "Uber" -> "UB"
+        parts.size == 1 -> {
+            val name = parts[0]
+            if (name.length >= 2) name.take(2).uppercase() else name.uppercase()
+        }
+        // Case: "Mohammad Arif" -> "MA"
+        else -> {
+            val first = parts[0].firstOrNull() ?: ""
+            val second = parts[1].firstOrNull() ?: ""
+            "$first$second".uppercase()
+        }
+    }
+}

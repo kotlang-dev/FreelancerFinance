@@ -11,10 +11,16 @@ sealed interface Route {
     data object Profile : Route
 
     @Serializable
-    data object ManageClient : Route
+    data object ManageClients : Route
 
     @Serializable
     data class AddEditClient(val clientId: Long?) : Route
+
+    @Serializable
+    data object ManageServices : Route
+
+    @Serializable
+    data class AddEditService(val serviceId: Long?) : Route
 
     @Serializable
     data object CreateInvoice : Route
