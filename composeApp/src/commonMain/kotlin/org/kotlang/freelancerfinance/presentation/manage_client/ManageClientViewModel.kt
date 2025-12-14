@@ -2,10 +2,14 @@ package org.kotlang.freelancerfinance.presentation.manage_client
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.debounce
+import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import org.kotlang.freelancerfinance.domain.model.Client
 import org.kotlang.freelancerfinance.domain.repository.ClientRepository
@@ -15,33 +19,32 @@ class ManageClientViewModel(
 ) : ViewModel() {
 
     private val _searchQuery = MutableStateFlow("")
+    @OptIn(FlowPreview::class)
+    private val debouncedSearchQuery = _searchQuery
+        .debounce(300L)
+        .map { it.trim() }
+        .distinctUntilChanged()
 
     val uiState: StateFlow<ManageClientUiState> = combine(
         _searchQuery,
+        debouncedSearchQuery,
         clientRepository.getAllClients()
-    ) { query, clients ->
+    ) { rawQuery, filterQuery, clients ->
 
-        val filteredList = if (query.isBlank()) {
+        val filteredList = if (filterQuery.isBlank()) {
             clients
         } else {
             clients.filter { client ->
-                client.name.contains(query, ignoreCase = true) ||
-                        (client.gstin?.contains(query, ignoreCase = true) == true) ||
-                        client.address.contains(query, ignoreCase = true)
+                client.name.contains(filterQuery, ignoreCase = true)
             }
         }
 
-        // B. Map Domain Model -> UI Model
-        val uiList = filteredList.map { client ->
-            client.toUiModel()
-        }
-
-        // C. Return final state
         ManageClientUiState(
             isLoading = false,
-            searchQuery = query,
-            filteredClients = uiList
+            searchQuery = rawQuery,
+            filteredClients = filteredList.map { it.toUiModel() }
         )
+
     }.stateIn(
         scope = viewModelScope,
         started = SharingStarted.WhileSubscribed(5000),

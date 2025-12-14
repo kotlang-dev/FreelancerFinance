@@ -80,16 +80,14 @@ private fun ManageClientScreen(
         modifier = Modifier
             .fillMaxSize()
             .background(MaterialTheme.colorScheme.background),
+        contentAlignment = Alignment.TopCenter
     ) {
         Column(
             modifier = Modifier
-                .fillMaxSize()
                 .widthIn(max = 700.dp)
+                .align(Alignment.TopCenter)
+                .padding(top = 60.dp)
         ) {
-            FinanceTopBar(
-                title = "Manage Clients",
-                onNavigateBack = { onAction(ManageClientUiAction.OnGoBackClick) }
-            )
 
             StandardSearchBar(
                 modifier = Modifier
@@ -137,6 +135,11 @@ private fun ManageClientScreen(
                 }
             }
         }
+
+        FinanceTopBar(
+            title = "Manage Clients",
+            onNavigateBack = { onAction(ManageClientUiAction.OnGoBackClick) }
+        )
 
         if (state.showFab) {
             FloatingActionButton(
