@@ -41,7 +41,7 @@ fun StandardTextField(
     ) {
         Text(
             text = inputLabel,
-            style = MaterialTheme.typography.bodySmall,
+            style = MaterialTheme.typography.labelSmall,
             modifier = Modifier.padding(bottom = 6.dp),
             color = MaterialTheme.colorScheme.onSurfaceVariant
         )

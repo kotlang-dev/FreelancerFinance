@@ -18,7 +18,8 @@ import androidx.compose.ui.unit.dp
 fun InitialsAvatar(
     name: String,
     initials: String,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    avatarSizeDp: Int = 48
 ) {
 
     // Deterministic random color based on name hash
@@ -32,7 +33,7 @@ fun InitialsAvatar(
 
     Box(
         modifier = modifier
-            .size(48.dp)
+            .size(avatarSizeDp.dp)
             .clip(CircleShape)
             .background(bgColor),
         contentAlignment = Alignment.Center

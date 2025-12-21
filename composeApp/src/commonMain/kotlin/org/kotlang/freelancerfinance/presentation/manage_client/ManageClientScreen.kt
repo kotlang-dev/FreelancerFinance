@@ -25,13 +25,11 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -41,11 +39,12 @@ import freelancerfinance.composeapp.generated.resources.img_no_clients_placehold
 import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.ui.tooling.preview.Preview
 import org.koin.compose.viewmodel.koinViewModel
+import org.kotlang.freelancerfinance.domain.model.Client
 import org.kotlang.freelancerfinance.presentation.design_system.bar.FinanceTopBar
+import org.kotlang.freelancerfinance.presentation.design_system.chip.ClientRegStatusChip
 import org.kotlang.freelancerfinance.presentation.design_system.layout.InitialsAvatar
 import org.kotlang.freelancerfinance.presentation.design_system.layout.StandardEmptyStateView
 import org.kotlang.freelancerfinance.presentation.design_system.textfields.StandardSearchBar
-import org.kotlang.freelancerfinance.presentation.theme.MoneyGreen
 
 @Composable
 fun ManageClientScreenRoot(
@@ -159,7 +158,7 @@ private fun ManageClientScreen(
 
 @Composable
 private fun ClientItemCard(
-    client: ClientListItemUi,
+    client: Client,
     onCardClick: () -> Unit
 ) {
     Card(
@@ -184,7 +183,6 @@ private fun ClientItemCard(
 
             Spacer(modifier = Modifier.width(16.dp))
 
-            // 2. Info Column
             Column(modifier = Modifier.weight(1f)) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Text(
@@ -195,8 +193,7 @@ private fun ClientItemCard(
                     )
                     Spacer(modifier = Modifier.width(8.dp))
 
-                    // Status Chip
-                    StatusChip(status = client.status)
+                    ClientRegStatusChip(status = client.status)
                 }
                 Spacer(modifier = Modifier.height(4.dp))
                 Text(
@@ -206,27 +203,6 @@ private fun ClientItemCard(
                 )
             }
         }
-    }
-}
-
-@Composable
-private fun StatusChip(status: ClientStatus) {
-    val (text, color) = when (status) {
-        ClientStatus.GSTIN -> "GSTIN" to MoneyGreen
-        ClientStatus.UNREGISTERED -> "Unregistered" to Color.Gray
-    }
-
-    Surface(
-        shape = RoundedCornerShape(4.dp),
-        border = BorderStroke(1.dp, color.copy(alpha = 0.5f)),
-        color = color.copy(alpha = 0.08f)
-    ) {
-        Text(
-            text = text,
-            style = MaterialTheme.typography.labelSmall,
-            color = color,
-            modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp)
-        )
     }
 }
 

@@ -13,12 +13,10 @@ import androidx.compose.ui.Modifier
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
-import org.koin.compose.viewmodel.koinViewModel
 import org.kotlang.freelancerfinance.presentation.add_edit_client.AddEditClientRoot
 import org.kotlang.freelancerfinance.presentation.add_edit_service.AddEditServiceRoot
 import org.kotlang.freelancerfinance.presentation.dashboard.DashboardScreenRoot
-import org.kotlang.freelancerfinance.presentation.invoice.CreateInvoiceScreen
-import org.kotlang.freelancerfinance.presentation.invoice.InvoiceViewModel
+import org.kotlang.freelancerfinance.presentation.invoice.CreateInvoiceScreenRoot
 import org.kotlang.freelancerfinance.presentation.manage_client.ManageClientScreenRoot
 import org.kotlang.freelancerfinance.presentation.manage_services.ManageServicesScreenRoot
 import org.kotlang.freelancerfinance.presentation.navigation.Route
@@ -87,19 +85,23 @@ fun App() {
                     )
                 }
 
-                // 3. Create Invoice
                 composable<Route.CreateInvoice> {
-                    val viewModel = koinViewModel<InvoiceViewModel>()
-                    CreateInvoiceScreen(
-                        viewModel = viewModel,
-                        onFinished = {
-                            navController.popBackStack(Route.Dashboard, inclusive = false)
-                        },
+                    CreateInvoiceScreenRoot(
+                        snackbarHostState = snackbarHostState,
                         onNavigateBack = { navController.navigateUp() },
-                        onAddNewClient = { navController.navigate(Route.AddEditClient(null)) }
+                        onNavigateToAddClient = { navController.navigate(Route.AddEditClient(null)) },
+                        onNavigateToEditClient = { navController.navigate(Route.AddEditClient(it)) }
                     )
                 }
             }
         }
     }
 }
+
+//TODO think of using a single field for address in business profile.
+//TODO Swap the text field in the profile screen, first gstin then prefilled pan
+//TODO Make the state list sorted alphabetically
+//TODO Invoice Data
+// - Consecutive Serial Number: e.g., INV/24-25/001
+// - Date of Issue:
+// - HSN

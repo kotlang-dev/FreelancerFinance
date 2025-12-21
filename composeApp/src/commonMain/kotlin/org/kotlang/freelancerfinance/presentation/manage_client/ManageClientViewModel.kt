@@ -11,12 +11,10 @@ import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
-import org.kotlang.freelancerfinance.domain.model.Client
 import org.kotlang.freelancerfinance.domain.repository.ClientRepository
-import org.kotlang.freelancerfinance.presentation.util.getInitials
 
 class ManageClientViewModel(
-    private val clientRepository: ClientRepository
+    clientRepository: ClientRepository
 ) : ViewModel() {
 
     private val _searchQuery = MutableStateFlow("")
@@ -43,7 +41,7 @@ class ManageClientViewModel(
         ManageClientUiState(
             isLoading = false,
             searchQuery = rawQuery,
-            filteredClients = filteredList.map { it.toUiModel() }
+            filteredClients = filteredList
         )
 
     }.stateIn(
@@ -60,15 +58,5 @@ class ManageClientViewModel(
             is ManageClientUiAction.OnAddEditClientClick -> Unit
             ManageClientUiAction.OnGoBackClick -> Unit
         }
-    }
-
-    private fun Client.toUiModel(): ClientListItemUi {
-        return ClientListItemUi(
-            id = this.id,
-            name = this.name,
-            locationShort = "${this.address}, ${this.state.name}",
-            status = if (gstin.isNullOrBlank()) ClientStatus.UNREGISTERED else ClientStatus.GSTIN,
-            initials = this.name.getInitials()
-        )
     }
 }
