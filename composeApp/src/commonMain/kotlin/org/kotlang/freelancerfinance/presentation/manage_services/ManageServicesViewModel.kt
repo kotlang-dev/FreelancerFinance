@@ -12,10 +12,7 @@ import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
-import org.kotlang.freelancerfinance.domain.model.ServiceItem
 import org.kotlang.freelancerfinance.domain.repository.ServiceItemRepository
-import org.kotlang.freelancerfinance.presentation.util.getInitials
-import org.kotlang.freelancerfinance.presentation.util.toIndianCurrency
 
 class ManageServicesViewModel(
     repository: ServiceItemRepository
@@ -46,7 +43,7 @@ class ManageServicesViewModel(
         ManageServicesUiState(
             isLoading = false,
             searchQuery = rawQuery,
-            filteredServices = filteredList.map { it.toUiModel() }
+            filteredServices = filteredList
         )
     }.stateIn(
         scope = viewModelScope,
@@ -63,22 +60,4 @@ class ManageServicesViewModel(
         }
     }
 
-    private fun ServiceItem.toUiModel(): ServiceListItemUi {
-        return ServiceListItemUi(
-            id = id,
-            name = name,
-            initials = name.getInitials(),
-            formattedPrice = defaultPrice.toIndianCurrency(),
-            taxRate = removeTrailingZero(taxRate)
-        )
-    }
-
-    private fun removeTrailingZero(value: Double): String {
-        // Converts 18.0 -> "18", but keeps 12.5 -> "12.5"
-        return if (value % 1.0 == 0.0) {
-            value.toInt().toString()
-        } else {
-            value.toString()
-        }
-    }
 }

@@ -1,4 +1,4 @@
-package org.kotlang.freelancerfinance.presentation.invoice
+package org.kotlang.freelancerfinance.presentation.create_invoice
 
 import androidx.compose.animation.Crossfade
 import androidx.compose.foundation.BorderStroke
@@ -7,6 +7,7 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -36,19 +37,14 @@ import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.drawBehind
-import androidx.compose.ui.geometry.CornerRadius
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.PathEffect
-import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
-import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import freelancerfinance.composeapp.generated.resources.Res
@@ -57,7 +53,6 @@ import freelancerfinance.composeapp.generated.resources.ic_calender_event
 import freelancerfinance.composeapp.generated.resources.ic_close
 import freelancerfinance.composeapp.generated.resources.ic_edit
 import freelancerfinance.composeapp.generated.resources.ic_factory
-import freelancerfinance.composeapp.generated.resources.ic_outline_add
 import freelancerfinance.composeapp.generated.resources.ic_person_add
 import freelancerfinance.composeapp.generated.resources.ic_save
 import freelancerfinance.composeapp.generated.resources.ic_tag
@@ -69,30 +64,17 @@ import org.koin.compose.viewmodel.koinViewModel
 import org.kotlang.freelancerfinance.domain.model.Client
 import org.kotlang.freelancerfinance.domain.model.ClientStatus
 import org.kotlang.freelancerfinance.domain.model.IndianState
+import org.kotlang.freelancerfinance.presentation.create_invoice.component.ClientSelectionSheet
+import org.kotlang.freelancerfinance.presentation.create_invoice.component.ServiceSelectionSheet
 import org.kotlang.freelancerfinance.presentation.design_system.bar.FinanceTopBar
+import org.kotlang.freelancerfinance.presentation.design_system.button.DashedOutlinedButton
+import org.kotlang.freelancerfinance.presentation.design_system.button.dashedBorder
 import org.kotlang.freelancerfinance.presentation.design_system.dialog.StandardDatePickerDialog
 import org.kotlang.freelancerfinance.presentation.design_system.textfields.StandardTextField
-import org.kotlang.freelancerfinance.presentation.invoice.component.ClientSelectionSheet
 import org.kotlang.freelancerfinance.presentation.util.ObserveAsEvents
 import org.kotlang.freelancerfinance.presentation.util.toFormattedDateString
 import java.text.NumberFormat
 import java.util.Locale
-
-// --- Data Models ---
-data class InvoiceItemData(
-    val title: String,
-    val description: String,
-    val quantity: Int, // e.g., Hours
-    val rate: Double // e.g., Hourly Rate
-) {
-    val total: Double get() = quantity * rate
-}
-
-// Sample Data
-val sampleInvoiceItems = listOf(
-    InvoiceItemData("UI Design Consultation", "Initial discovery phase and wireframing.", 10, 50.0),
-    InvoiceItemData("Prototype Development", "Interactive Figma prototype.", 1, 350.0)
-)
 
 @Composable
 fun CreateInvoiceScreenRoot(
@@ -100,28 +82,25 @@ fun CreateInvoiceScreenRoot(
     snackbarHostState: SnackbarHostState,
     onNavigateBack: () -> Unit,
     onNavigateToAddClient: () -> Unit,
-    onNavigateToEditClient: (Long) -> Unit
+    onNavigateToEditClient: (Long) -> Unit,
+    onNavigateToAddService: () -> Unit,
+    onNavigateToEditService: (Long) -> Unit
 ) {
     val uiState by viewModel.state.collectAsStateWithLifecycle()
     val scope = rememberCoroutineScope()
 
     ObserveAsEvents(viewModel.uiEvent) { event ->
         when (event) {
-            is CreateInvoiceEvent.NavigateBack -> {
-                onNavigateBack()
-            }
-
-            is CreateInvoiceEvent.NavigateToAddClient -> {
-                onNavigateToAddClient()
-            }
-
-            is CreateInvoiceEvent.NavigateToEditClient -> {
-                onNavigateToEditClient(event.clientId)
-            }
+            is CreateInvoiceEvent.NavigateBack -> onNavigateBack()
+            is CreateInvoiceEvent.NavigateToAddClient -> onNavigateToAddClient()
+            is CreateInvoiceEvent.NavigateToEditClient -> onNavigateToEditClient(event.clientId)
+            CreateInvoiceEvent.NavigateToAddService -> onNavigateToAddService()
+            is CreateInvoiceEvent.NavigateToEditService -> onNavigateToEditService(event.serviceId)
 
             is CreateInvoiceEvent.ShowSnackbar -> {
                 scope.launch { snackbarHostState.showSnackbar(event.message) }
             }
+
         }
     }
 
@@ -139,19 +118,23 @@ private fun CreateInvoiceScreen(
 ) {
     val scrollState = rememberScrollState()
 
-    // Calculation Logic
-    val subtotal = sampleInvoiceItems.sumOf { it.total }
-    val taxRate = 0.18 // 18%
-    val taxAmount = subtotal * taxRate
-    val grandTotal = subtotal + taxAmount
-
     if (state.showClientSelectionSheet) {
         ClientSelectionSheet(
             clients = state.availableClients,
             onDismissRequest = { onAction(CreateInvoiceUiAction.OnDismissClientSheet) },
             onClientSelected = { onAction(CreateInvoiceUiAction.OnClientSelected(it)) },
-            onAddNewClient = { onAction(CreateInvoiceUiAction.OnAddNewClientClick) },
+            onAddNewClientClick = { onAction(CreateInvoiceUiAction.OnAddNewClientClick) },
             onEditClientClick = { onAction(CreateInvoiceUiAction.OnEditClientClick(it)) }
+        )
+    }
+
+    if (state.showServiceSelectionSheet) {
+        ServiceSelectionSheet(
+            services = state.availableServices,
+            onDismissRequest = { onAction(CreateInvoiceUiAction.OnDismissServiceSheet) },
+            onServiceSelected = { onAction(CreateInvoiceUiAction.OnServiceSelected(it)) },
+            onAddNewServiceClick = { onAction(CreateInvoiceUiAction.OnAddNewServiceItemClick) },
+            onEditServiceClick = { onAction(CreateInvoiceUiAction.OnEditServiceItemClick(it)) }
         )
     }
 
@@ -222,13 +205,8 @@ private fun CreateInvoiceScreen(
             Spacer(modifier = Modifier.height(8.dp))
             ClientSelectionBox(
                 selectedClient = state.selectedClient,
-                onAddClientClick = { onAction(CreateInvoiceUiAction.OnAddClientClick) },
-                onChangeClientClick = {
-                    //    onAction(CreateInvoiceUiAction.OnChangeClientClick)
-                },
-                onEditClientClick = {
-                    //  onAction(CreateInvoiceUiAction.OnEditClientClick(it))
-                }
+                onEditClientClick = { onAction(CreateInvoiceUiAction.OnEditClientClick(it)) },
+                onClick = { onAction(CreateInvoiceUiAction.OnAddClientClick) }
             )
 
             Spacer(modifier = Modifier.height(24.dp))
@@ -245,27 +223,32 @@ private fun CreateInvoiceScreen(
                     fontWeight = FontWeight.Bold
                 )
                 Text(
-                    text = "${sampleInvoiceItems.size} items",
+                    text = "${state.lineItems.size} items",
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
             }
-            Spacer(modifier = Modifier.height(8.dp))
 
-            sampleInvoiceItems.forEach { item ->
-                InvoiceItemCard(item)
+            state.lineItems.forEach { item ->
                 Spacer(modifier = Modifier.height(12.dp))
+                InvoiceItemCard(
+                    item = item,
+                    onEditClick = {  },
+                    onRemoveClick = { onAction(CreateInvoiceUiAction.OnRemoveServiceItemClick(it)) }
+                )
             }
+            Spacer(modifier = Modifier.height(12.dp))
 
-            // 5. Add Item Button (Dashed)
-            DashedButton(text = "Add Item")
-
+            DashedOutlinedButton(
+                text = "Add Item",
+                onClick = { onAction(CreateInvoiceUiAction.OnAddServiceItemClick) }
+            )
             Spacer(modifier = Modifier.height(24.dp))
 
             // 6. Calculations
-            CalculationRow(label = "Subtotal", amount = subtotal)
+            CalculationRow(label = "Subtotal", amount = state.subtotal)
             CalculationRow(label = "Add Discount", amount = 0.0, isLink = true)
-            CalculationRow(label = "Tax (18%)", amount = taxAmount)
+            CalculationRow(label = "Tax (18%)", amount = state.totalTax)
 
             HorizontalDivider(
                 modifier = Modifier.padding(vertical = 12.dp),
@@ -282,7 +265,7 @@ private fun CreateInvoiceScreen(
                     fontWeight = FontWeight.Bold
                 )
                 Text(
-                    text = formatCurrency(grandTotal),
+                    text = formatCurrency(state.grandTotal),
                     style = MaterialTheme.typography.titleMedium,
                     fontWeight = FontWeight.Bold,
                     color = MaterialTheme.colorScheme.primary
@@ -319,7 +302,7 @@ private fun CreateInvoiceScreen(
 
         InvoiceBottomBar(
             modifier = Modifier.align(Alignment.BottomCenter),
-            grandTotal = grandTotal
+            grandTotal = state.grandTotal
         )
     }
 }
@@ -381,9 +364,8 @@ fun InvoiceBottomBar(
 private fun ClientSelectionBox(
     selectedClient: Client?,
     modifier: Modifier = Modifier,
-    onAddClientClick: () -> Unit,
-    onChangeClientClick: () -> Unit,
-    onEditClientClick: () -> Unit
+    onEditClientClick: (id: Long) -> Unit,
+    onClick: () -> Unit
 ) {
     Box(
         modifier = modifier
@@ -394,21 +376,14 @@ private fun ClientSelectionBox(
                 MaterialTheme.colorScheme.surfaceContainerLowest.copy(alpha = 0.5f),
                 RoundedCornerShape(12.dp)
             )
-            .clickable {
-                if (selectedClient == null) {
-                    onAddClientClick()
-                } else onChangeClientClick()
-            },
+            .clickable(onClick = onClick),
         contentAlignment = Alignment.Center
     ) {
-        Crossfade(
-            targetState = selectedClient
-        ) { client ->
+        Crossfade(targetState = selectedClient) { client ->
             if (client != null) {
                 SelectedClientCard(
                     client = client,
-                    modifier = modifier,
-                    onEditClick = onEditClientClick
+                    onEditClick = { onEditClientClick(client.id) }
                 )
             } else {
                 EmptyClientPlaceholder()
@@ -529,89 +504,84 @@ private fun EmptyClientPlaceholder(
 }
 
 @Composable
-fun InvoiceItemCard(item: InvoiceItemData) {
+private fun InvoiceItemCard(
+    item: InvoiceLineItemUi,
+    onEditClick: (serviceId: Long) -> Unit,
+    onRemoveClick: (internalId: String) -> Unit
+) {
     Card(
         shape = RoundedCornerShape(12.dp),
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerLowest),
         border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f)),
         modifier = Modifier.fillMaxWidth()
     ) {
-        Column(modifier = Modifier.padding(16.dp)) {
+        Column(modifier = Modifier.padding(horizontal = 16.dp)) {
             Row(
-                modifier = Modifier.fillMaxWidth(),
+                modifier = Modifier.fillMaxWidth().padding(top = 16.dp),
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
                 Text(
-                    item.title,
+                    text = item.name,
+                    fontWeight = FontWeight.Bold,
+                    style = MaterialTheme.typography.bodyLarge,
+                    modifier = Modifier.weight(1f).padding(end = 8.dp)
+                )
+                Text(
+                    text = "₹${item.totalAmount}",
                     fontWeight = FontWeight.Bold,
                     style = MaterialTheme.typography.bodyLarge
                 )
-                Text(formatCurrency(item.total), fontWeight = FontWeight.Bold)
             }
-            Spacer(modifier = Modifier.height(4.dp))
-            Text(
-                item.description,
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
-            )
 
-            Spacer(modifier = Modifier.height(12.dp))
-            HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.2f))
-            Spacer(modifier = Modifier.height(12.dp))
+            if (!item.description.isNullOrBlank()) {
+                Spacer(modifier = Modifier.height(4.dp))
+                Text(
+                    text = item.description,
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    maxLines = 2,
+                    overflow = TextOverflow.Ellipsis
+                )
+            }
+
+            Spacer(modifier = Modifier.height(18.dp))
+            HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f))
 
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                Surface(
-                    color = MaterialTheme.colorScheme.surfaceContainerHigh,
-                    shape = RoundedCornerShape(4.dp)
+                Column(
+                    modifier = Modifier.weight(1f).padding(end = 8.dp)
                 ) {
                     Text(
-                        text = if (item.quantity > 5) "${item.quantity} hrs × $${item.rate}" else "Fixed Price",
+                        text = "${item.quantity} x ₹${item.unitPrice}",
+                        style = MaterialTheme.typography.labelMedium,
+                        color = MaterialTheme.colorScheme.onSurface
+                    )
+                    Text(
+                        text = "+ ${item.taxRate}% Tax",
                         style = MaterialTheme.typography.labelSmall,
-                        modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                 }
-                Text(
-                    "Edit",
-                    color = MaterialTheme.colorScheme.primary,
-                    style = MaterialTheme.typography.labelMedium,
-                    fontWeight = FontWeight.Bold,
-                    modifier = Modifier.clickable { }
-                )
-            }
-        }
-    }
-}
 
-@Composable
-fun DashedButton(text: String) {
-    Box(
-        modifier = Modifier
-            .fillMaxWidth()
-            .height(50.dp)
-            .dashedBorder(
-                color = MaterialTheme.colorScheme.primary.copy(alpha = 0.5f),
-                cornerRadius = 12.dp
-            )
-            .background(
-                MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.1f),
-                RoundedCornerShape(12.dp)
-            )
-            .clickable { },
-        contentAlignment = Alignment.Center
-    ) {
-        Row(verticalAlignment = Alignment.CenterVertically) {
-            Icon(
-                painter = painterResource(Res.drawable.ic_outline_add),
-                contentDescription = null,
-                tint = MaterialTheme.colorScheme.primary,
-                modifier = Modifier.size(16.dp)
-            )
-            Spacer(modifier = Modifier.width(8.dp))
-            Text(text, color = MaterialTheme.colorScheme.primary, fontWeight = FontWeight.Bold)
+                TextButton(
+                    onClick = { onRemoveClick(item.internalId) },
+                    colors = ButtonDefaults.textButtonColors(
+                        contentColor = MaterialTheme.colorScheme.error
+                    )
+                ) {
+                    Text("Remove")
+                }
+
+                TextButton(
+                    onClick = { item.serviceId?.let { onEditClick(it) } }
+                ) {
+                    Text("Edit", fontWeight = FontWeight.Bold)
+                }
+            }
         }
     }
 }
@@ -650,17 +620,6 @@ fun CalculationRow(label: String, amount: Double, isLink: Boolean = false) {
 
 fun formatCurrency(amount: Double): String {
     return NumberFormat.getCurrencyInstance(Locale.US).format(amount)
-}
-
-fun Modifier.dashedBorder(width: Dp = 1.dp, color: Color, cornerRadius: Dp) = drawBehind {
-    drawRoundRect(
-        color = color,
-        style = Stroke(
-            width = width.toPx(),
-            pathEffect = PathEffect.dashPathEffect(floatArrayOf(10f, 10f), 0f)
-        ),
-        cornerRadius = CornerRadius(cornerRadius.toPx())
-    )
 }
 
 @Composable

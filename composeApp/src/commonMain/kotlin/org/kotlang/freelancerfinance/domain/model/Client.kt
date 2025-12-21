@@ -26,9 +26,7 @@ data class Client(
 
             return if (addressPart.isBlank()) {
                 state.stateName
-            } else {
-                "$addressPart, ${state.stateName}"
-            }
+            } else "$addressPart, ${state.stateName}"
         }
 
     val fullAddressDisplay: String

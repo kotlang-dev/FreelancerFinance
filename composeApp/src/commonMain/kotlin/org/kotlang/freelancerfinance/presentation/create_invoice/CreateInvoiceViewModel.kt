@@ -1,4 +1,4 @@
-package org.kotlang.freelancerfinance.presentation.invoice
+package org.kotlang.freelancerfinance.presentation.create_invoice
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -17,22 +17,28 @@ import org.kotlang.freelancerfinance.domain.repository.FileOpener
 import org.kotlang.freelancerfinance.domain.repository.InvoiceRepository
 import org.kotlang.freelancerfinance.domain.repository.PdfGenerator
 import org.kotlang.freelancerfinance.domain.repository.ProfileRepository
+import org.kotlang.freelancerfinance.domain.repository.ServiceItemRepository
+import java.util.UUID
 
 class CreateInvoiceViewModel(
+    clientRepository: ClientRepository,
+    serviceItemRepository: ServiceItemRepository,
     private val invoiceRepository: InvoiceRepository,
-    private val clientRepository: ClientRepository,
     private val profileRepository: ProfileRepository,
     private val pdfGenerator: PdfGenerator,
     private val fileOpener: FileOpener
 ) : ViewModel() {
 
-    // 1. Main List State
     private val _state = MutableStateFlow(CreateInvoiceUiState())
     val state: StateFlow<CreateInvoiceUiState> = combine(
         _state,
-        clientRepository.getAllClients()
-    ) { state, clients ->
-        state.copy(availableClients = clients)
+        clientRepository.getAllClients(),
+        serviceItemRepository.getAllServiceItems()
+    ) { state, clients, services ->
+        state.copy(
+            availableClients = clients,
+            availableServices = services
+        )
     }.stateIn(
         scope = viewModelScope,
         started = SharingStarted.WhileSubscribed(5000),
@@ -55,7 +61,6 @@ class CreateInvoiceViewModel(
                 sendEvent(CreateInvoiceEvent.NavigateToEditClient(action.clientId))
             }
             CreateInvoiceUiAction.OnDismissClientSheet -> dismissClientSheet()
-            CreateInvoiceUiAction.OnAddLineItemClick -> TODO()
             is CreateInvoiceUiAction.OnClientSelected -> {
                 _state.update {
                     it.copy(
@@ -66,21 +71,56 @@ class CreateInvoiceViewModel(
                 }
             }
             is CreateInvoiceUiAction.OnDateSelected -> onDateSelected(action.dateMillis)
-            CreateInvoiceUiAction.OnDismissServiceSheet -> TODO()
             is CreateInvoiceUiAction.OnDateFieldClick -> {
                 _state.update { it.copy(activeDatePicker = action.type) }
             }
             is CreateInvoiceUiAction.OnInvoiceNumberChange -> TODO()
             is CreateInvoiceUiAction.OnQuantityChange -> TODO()
-            is CreateInvoiceUiAction.OnRemoveLineItem -> TODO()
             CreateInvoiceUiAction.OnSaveAndPreviewClick -> TODO()
-            is CreateInvoiceUiAction.OnServiceSelected -> TODO()
             CreateInvoiceUiAction.OnGoBackClick -> {
                 sendEvent(CreateInvoiceEvent.NavigateBack)
             }
             CreateInvoiceUiAction.OnAddNewClientClick -> {
                 dismissClientSheet()
                 sendEvent(CreateInvoiceEvent.NavigateToAddClient)
+            }
+            CreateInvoiceUiAction.OnAddServiceItemClick -> {
+                _state.update { it.copy(showServiceSelectionSheet = true) }
+            }
+            CreateInvoiceUiAction.OnDismissServiceSheet -> dismissServiceSheet()
+            is CreateInvoiceUiAction.OnServiceSelected -> {
+                val newItem = InvoiceLineItemUi(
+                    internalId = UUID.randomUUID().toString(),
+                    serviceId = action.service.id,
+                    name = action.service.name,
+                    unitPrice = action.service.defaultPrice,
+                    taxRate = action.service.taxRate,
+                    quantity = 1.0,
+                    description = action.service.description
+                )
+                _state.update {
+                    it.copy(
+                        lineItems = it.lineItems + newItem,
+                        showServiceSelectionSheet = false,
+                        itemsError = null
+                    )
+                }
+            }
+            CreateInvoiceUiAction.OnAddNewServiceItemClick -> {
+                dismissServiceSheet()
+                sendEvent(CreateInvoiceEvent.NavigateToAddService)
+            }
+            is CreateInvoiceUiAction.OnEditServiceItemClick -> {
+                dismissServiceSheet()
+                sendEvent(CreateInvoiceEvent.NavigateToEditService(action.serviceId))
+            }
+            is CreateInvoiceUiAction.OnRemoveServiceItemClick -> {
+                _state.update { currentState ->
+                    val updatedList = currentState.lineItems.filterNot {
+                        it.internalId == action.internalId
+                    }
+                    currentState.copy(lineItems = updatedList)
+                }
             }
         }
     }
@@ -110,6 +150,10 @@ class CreateInvoiceViewModel(
 
     private fun dismissClientSheet() {
         _state.update { it.copy(showClientSelectionSheet = false) }
+    }
+
+    private fun dismissServiceSheet() {
+        _state.update { it.copy(showServiceSelectionSheet = false) }
     }
 
     /*

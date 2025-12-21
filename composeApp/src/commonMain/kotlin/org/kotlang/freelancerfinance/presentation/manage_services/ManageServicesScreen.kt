@@ -39,6 +39,7 @@ import freelancerfinance.composeapp.generated.resources.ic_outline_add
 import freelancerfinance.composeapp.generated.resources.img_no_clients_placeholder
 import org.jetbrains.compose.resources.painterResource
 import org.koin.compose.viewmodel.koinViewModel
+import org.kotlang.freelancerfinance.domain.model.ServiceItem
 import org.kotlang.freelancerfinance.presentation.design_system.bar.FinanceTopBar
 import org.kotlang.freelancerfinance.presentation.design_system.layout.InitialsAvatar
 import org.kotlang.freelancerfinance.presentation.design_system.layout.StandardEmptyStateView
@@ -153,7 +154,7 @@ private fun ManageServicesScreen(
 
 @Composable
 private fun ServiceItemCard(
-    service: ServiceListItemUi,
+    service: ServiceItem,
     onCardClick: () -> Unit
 ) {
     Card(

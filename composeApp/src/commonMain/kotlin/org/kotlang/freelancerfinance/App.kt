@@ -16,7 +16,7 @@ import androidx.navigation.compose.rememberNavController
 import org.kotlang.freelancerfinance.presentation.add_edit_client.AddEditClientRoot
 import org.kotlang.freelancerfinance.presentation.add_edit_service.AddEditServiceRoot
 import org.kotlang.freelancerfinance.presentation.dashboard.DashboardScreenRoot
-import org.kotlang.freelancerfinance.presentation.invoice.CreateInvoiceScreenRoot
+import org.kotlang.freelancerfinance.presentation.create_invoice.CreateInvoiceScreenRoot
 import org.kotlang.freelancerfinance.presentation.manage_client.ManageClientScreenRoot
 import org.kotlang.freelancerfinance.presentation.manage_services.ManageServicesScreenRoot
 import org.kotlang.freelancerfinance.presentation.navigation.Route
@@ -90,7 +90,9 @@ fun App() {
                         snackbarHostState = snackbarHostState,
                         onNavigateBack = { navController.navigateUp() },
                         onNavigateToAddClient = { navController.navigate(Route.AddEditClient(null)) },
-                        onNavigateToEditClient = { navController.navigate(Route.AddEditClient(it)) }
+                        onNavigateToEditClient = { navController.navigate(Route.AddEditClient(it)) },
+                        onNavigateToAddService = { navController.navigate(Route.AddEditService(null)) },
+                        onNavigateToEditService = { navController.navigate(Route.AddEditService(it))}
                     )
                 }
             }

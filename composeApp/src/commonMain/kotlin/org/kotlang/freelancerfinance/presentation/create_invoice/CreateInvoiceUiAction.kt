@@ -1,4 +1,4 @@
-package org.kotlang.freelancerfinance.presentation.invoice
+package org.kotlang.freelancerfinance.presentation.create_invoice
 
 import org.kotlang.freelancerfinance.domain.model.Client
 import org.kotlang.freelancerfinance.domain.model.ServiceItem
@@ -15,21 +15,20 @@ sealed interface CreateInvoiceUiAction {
     // Date Selected (from Dialog)
     data class OnDateSelected(val dateMillis: Long?) : CreateInvoiceUiAction
 
+    // --- Client Section ---
     data object OnAddClientClick : CreateInvoiceUiAction
     data class OnClientSelected(val client: Client) : CreateInvoiceUiAction
     data object OnDismissClientSheet : CreateInvoiceUiAction
     data object OnAddNewClientClick : CreateInvoiceUiAction
     data class OnEditClientClick(val clientId: Long) : CreateInvoiceUiAction
 
-    // --- Line Items Section ---
-    data object OnAddLineItemClick : CreateInvoiceUiAction // Opens Service Sheet
-    data object OnDismissServiceSheet : CreateInvoiceUiAction
-
-    // When user picks a saved service from the sheet
+    // --- Service Items Section ---
+    data object OnAddServiceItemClick : CreateInvoiceUiAction
     data class OnServiceSelected(val service: ServiceItem) : CreateInvoiceUiAction
-
-    // Managing the list
-    data class OnRemoveLineItem(val internalId: String) : CreateInvoiceUiAction
+    data object OnDismissServiceSheet : CreateInvoiceUiAction
+    data object OnAddNewServiceItemClick : CreateInvoiceUiAction
+    data class OnEditServiceItemClick(val serviceId: Long) : CreateInvoiceUiAction
+    data class OnRemoveServiceItemClick(val internalId: String) : CreateInvoiceUiAction
     data class OnQuantityChange(val internalId: String, val newQuantity: Double) : CreateInvoiceUiAction
 
     // --- Footer ---

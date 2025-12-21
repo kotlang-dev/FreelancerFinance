@@ -1,4 +1,4 @@
-package org.kotlang.freelancerfinance.presentation.invoice.component
+package org.kotlang.freelancerfinance.presentation.create_invoice.component
 
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.clickable
@@ -45,7 +45,7 @@ fun ClientSelectionSheet(
     onDismissRequest: () -> Unit,
     onClientSelected: (Client) -> Unit,
     onEditClientClick: (Long) -> Unit,
-    onAddNewClient: () -> Unit
+    onAddNewClientClick: () -> Unit
 ) {
     ModalBottomSheet(
         modifier = modifier,
@@ -55,7 +55,7 @@ fun ClientSelectionSheet(
                 clients = clients,
                 onClientSelected = onClientSelected,
                 onEditClientClick = onEditClientClick,
-                onAddNewClient = onAddNewClient
+                onAddNewClient = onAddNewClientClick
             )
         }
     )
