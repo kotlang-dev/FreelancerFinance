@@ -32,12 +32,12 @@ interface InvoiceDao {
         SELECT 
             invoices.id, 
             invoices.invoiceNumber, 
-            invoices.date, 
+            invoices.issueDate as date, 
             invoices.totalAmount, 
             clients.name as clientName
         FROM invoices
-        INNER JOIN clients ON invoices.clientId = clients.id
-        ORDER BY invoices.date DESC
+        INNER JOIN clients ON invoices.client_originalClientId = clients.id
+        ORDER BY invoices.issueDate DESC
     """)
     fun getAllInvoicesSummary(): Flow<List<InvoiceSummaryTuple>>
 
@@ -45,13 +45,15 @@ interface InvoiceDao {
         SELECT 
             invoices.id, 
             invoices.invoiceNumber, 
-            invoices.date, 
+            invoices.issueDate as date, 
             invoices.totalAmount, 
             clients.name as clientName
         FROM invoices
-        INNER JOIN clients ON invoices.clientId = clients.id
-        ORDER BY invoices.date DESC
+        INNER JOIN clients ON invoices.client_originalClientId = clients.id
+        ORDER BY invoices.issueDate DESC
         LIMIT :limit
     """)
     fun getRecentInvoicesSummary(limit: Int): Flow<List<InvoiceSummaryTuple>>
 }
+
+//TODO think of combining these two InvoicesSummary fn into one.

@@ -76,7 +76,7 @@ class DesktopPdfGenerator : PdfGenerator {
                     newLineAtOffset(400f, rightY)
                     showText("#${invoice.invoiceNumber}")
                     newLineAtOffset(0f, -15f)
-                    showText(SimpleDateFormat("dd MMM yyyy", Locale.ENGLISH).format(Date(invoice.date)))
+                    showText(SimpleDateFormat("dd MMM yyyy", Locale.ENGLISH).format(Date(invoice.issueDate)))
                     endText()
 
                     // Move Main Cursor Down
@@ -129,7 +129,7 @@ class DesktopPdfGenerator : PdfGenerator {
                     // --- 5. Items ---
                     setFont(PDType1Font(Standard14Fonts.FontName.HELVETICA), 12f)
 
-                    for (item in invoice.items) {
+                    for (item in invoice.lineItems) {
                         // Description
                         beginText()
                         newLineAtOffset(50f, yPosition)
@@ -151,7 +151,7 @@ class DesktopPdfGenerator : PdfGenerator {
                         // Total
                         beginText()
                         newLineAtOffset(440f, yPosition)
-                        showText(item.amount.toString())
+                        showText(item.total.toString())
                         endText()
 
                         yPosition -= 20f

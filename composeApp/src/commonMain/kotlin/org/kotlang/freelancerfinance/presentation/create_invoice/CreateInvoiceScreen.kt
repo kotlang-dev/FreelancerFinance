@@ -7,7 +7,6 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -20,6 +19,8 @@ import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.BasicTextField
+import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
@@ -31,7 +32,6 @@ import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedCard
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.SnackbarHostState
@@ -43,9 +43,13 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.SolidColor
+import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import freelancerfinance.composeapp.generated.resources.Res
 import freelancerfinance.composeapp.generated.resources.ic_calendar_today
@@ -70,7 +74,6 @@ import org.kotlang.freelancerfinance.presentation.design_system.bar.FinanceTopBa
 import org.kotlang.freelancerfinance.presentation.design_system.button.DashedOutlinedButton
 import org.kotlang.freelancerfinance.presentation.design_system.button.dashedBorder
 import org.kotlang.freelancerfinance.presentation.design_system.dialog.StandardDatePickerDialog
-import org.kotlang.freelancerfinance.presentation.design_system.textfields.StandardTextField
 import org.kotlang.freelancerfinance.presentation.util.ObserveAsEvents
 import org.kotlang.freelancerfinance.presentation.util.toFormattedDateString
 import java.text.NumberFormat
@@ -153,46 +156,25 @@ private fun CreateInvoiceScreen(
     ) {
         Column(
             modifier = Modifier
-                .widthIn(max = 700.dp) // Desktop constraint
+                .widthIn(max = 700.dp)
                 .fillMaxSize()
                 .verticalScroll(scrollState)
-                .padding(horizontal = 16.dp)
-                .padding(top = 70.dp, bottom = 24.dp)
+                .padding(horizontal = 16.dp, vertical = 70.dp)
         ) {
-            StandardTextField(
-                inputLabel = "INVOICE NO.",
-                value = "INV-1024",
-                onValueChange = {},
-                readOnly = true,
-                leadingIconResId = Res.drawable.ic_tag
+            InvoiceHeaderSection(
+                invoiceNumber = state.invoiceNumber,
+                issueDate = state.issueDate.toFormattedDateString(),
+                dueDate = state.dueDate.toFormattedDateString(),
+                onIssueDateClick = {
+                    onAction(CreateInvoiceUiAction.OnDateFieldClick(DatePickerType.IssueDate))
+                },
+                onDueDateClick = {
+                    onAction(CreateInvoiceUiAction.OnDateFieldClick(DatePickerType.DueDate))
+                },
+                onInvoiceNumberChange = {
+                    onAction(CreateInvoiceUiAction.OnInvoiceNumberChange(it))
+                }
             )
-
-            Spacer(modifier = Modifier.height(16.dp))
-
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(16.dp)
-            ) {
-                DateSelectorField(
-                    label = "Issue Date",
-                    value = state.issueDate.toFormattedDateString(),
-                    iconResId = Res.drawable.ic_calendar_today,
-                    onClick = {
-                        onAction(CreateInvoiceUiAction.OnDateFieldClick(DatePickerType.IssueDate))
-                    },
-                    modifier = Modifier.weight(1f)
-                )
-
-                DateSelectorField(
-                    label = "Due Date",
-                    value = state.dueDate.toFormattedDateString(),
-                    iconResId = Res.drawable.ic_calender_event,
-                    onClick = {
-                        onAction(CreateInvoiceUiAction.OnDateFieldClick(DatePickerType.DueDate))
-                    },
-                    modifier = Modifier.weight(1f)
-                )
-            }
 
             Spacer(modifier = Modifier.height(24.dp))
 
@@ -233,7 +215,7 @@ private fun CreateInvoiceScreen(
                 Spacer(modifier = Modifier.height(12.dp))
                 InvoiceItemCard(
                     item = item,
-                    onEditClick = {  },
+                    onEditClick = { },
                     onRemoveClick = { onAction(CreateInvoiceUiAction.OnRemoveServiceItemClick(it)) }
                 )
             }
@@ -302,7 +284,8 @@ private fun CreateInvoiceScreen(
 
         InvoiceBottomBar(
             modifier = Modifier.align(Alignment.BottomCenter),
-            grandTotal = state.grandTotal
+            grandTotal = state.grandTotal,
+            onSaveClick = { onAction(CreateInvoiceUiAction.OnSaveAndPreviewClick) }
         )
     }
 }
@@ -312,7 +295,8 @@ private fun CreateInvoiceScreen(
 @Composable
 fun InvoiceBottomBar(
     grandTotal: Double,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    onSaveClick: () -> Unit
 ) {
     Surface(
         shadowElevation = 8.dp,
@@ -344,7 +328,7 @@ fun InvoiceBottomBar(
             }
 
             Button(
-                onClick = { /* Save Logic */ },
+                onClick = onSaveClick,
                 shape = RoundedCornerShape(12.dp),
                 colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary)
             ) {
@@ -587,6 +571,106 @@ private fun InvoiceItemCard(
 }
 
 @Composable
+private fun InvoiceHeaderSection(
+    invoiceNumber: String,
+    issueDate: String,
+    dueDate: String,
+    onIssueDateClick: () -> Unit,
+    onDueDateClick: () -> Unit,
+    onInvoiceNumberChange: (String) -> Unit,
+    modifier: Modifier = Modifier
+) {
+    Card(
+        modifier = modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(12.dp),
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.surfaceContainerLowest
+        ),
+        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+    ) {
+        Column(
+            modifier = Modifier
+                .padding(16.dp)
+                .fillMaxWidth()
+        ) {
+            InputLabel("Invoice No.")
+            CompactInvoiceNumberField(
+                value = invoiceNumber,
+                onValueChange = onInvoiceNumberChange
+            )
+
+            Spacer(modifier = Modifier.height(16.dp))
+
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(16.dp)
+            ) {
+                DateSelectorField(
+                    label = "Issue Date",
+                    value = issueDate,
+                    iconResId = Res.drawable.ic_calendar_today,
+                    onClick = onIssueDateClick,
+                    modifier = Modifier.weight(1f)
+                )
+
+                DateSelectorField(
+                    label = "Due Date",
+                    value = dueDate,
+                    iconResId = Res.drawable.ic_calender_event,
+                    onClick = onDueDateClick,
+                    modifier = Modifier.weight(1f)
+                )
+            }
+        }
+    }
+}
+
+@Composable
+private fun CompactInvoiceNumberField(
+    value: String,
+    onValueChange: (String) -> Unit
+) {
+    val focusManager = LocalFocusManager.current
+    BasicTextField(
+        value = value,
+        onValueChange = onValueChange,
+        textStyle = MaterialTheme.typography.bodyLarge.copy(
+            color = MaterialTheme.colorScheme.onSurface,
+            fontWeight = FontWeight.Medium
+        ),
+        singleLine = true,
+        cursorBrush = SolidColor(MaterialTheme.colorScheme.primary),
+        keyboardActions = KeyboardActions(
+            onDone = { focusManager.clearFocus() }
+        ),
+        decorationBox = { innerTextField ->
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(48.dp)
+                    .clip(RoundedCornerShape(8.dp))
+                    .background(MaterialTheme.colorScheme.surfaceContainerHigh) // Light Gray Background
+                    .padding(horizontal = 12.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Icon(
+                    painter = painterResource(Res.drawable.ic_tag),
+                    contentDescription = null,
+                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier.size(20.dp)
+                )
+
+                Spacer(modifier = Modifier.width(12.dp))
+
+                Box(modifier = Modifier.weight(1f)) {
+                    innerTextField()
+                }
+            }
+        }
+    )
+}
+
+@Composable
 fun CalculationRow(label: String, amount: Double, isLink: Boolean = false) {
     Row(
         modifier = Modifier
@@ -631,43 +715,47 @@ private fun DateSelectorField(
     modifier: Modifier = Modifier
 ) {
     Column(modifier = modifier) {
-        Text(
-            text = label,
-            style = MaterialTheme.typography.bodySmall,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-            modifier = Modifier.padding(bottom = 6.dp)
-        )
+        InputLabel(label)
 
-        OutlinedCard(
-            onClick = onClick,
-            shape = RoundedCornerShape(8.dp),
-            border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline),
-            colors = CardDefaults.outlinedCardColors(
-                containerColor = MaterialTheme.colorScheme.surfaceContainerLowest
-            ),
-            modifier = Modifier.fillMaxWidth().height(56.dp) // Standard height
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(48.dp)
+                .clip(RoundedCornerShape(8.dp))
+                .background(MaterialTheme.colorScheme.surfaceContainerHigh) // Same Gray Background
+                .clickable(onClick = onClick)
+                .padding(horizontal = 12.dp),
+            contentAlignment = Alignment.CenterStart
         ) {
             Row(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(horizontal = 16.dp),
                 verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.SpaceBetween
+                horizontalArrangement = Arrangement.spacedBy(12.dp)
             ) {
+                Icon(
+                    painter = painterResource(iconResId),
+                    contentDescription = null,
+                    tint = MaterialTheme.colorScheme.primary,
+                    modifier = Modifier.size(20.dp)
+                )
+
                 Text(
                     text = value,
                     style = MaterialTheme.typography.bodyLarge,
                     color = MaterialTheme.colorScheme.onSurface
                 )
-
-                Icon(
-                    painter = painterResource(iconResId),
-                    contentDescription = null,
-                    tint = MaterialTheme.colorScheme.onSurfaceVariant
-                )
             }
         }
     }
+}
+
+@Composable
+private fun InputLabel(text: String) {
+    Text(
+        text = text,
+        style = MaterialTheme.typography.bodySmall,
+        color = MaterialTheme.colorScheme.onSurfaceVariant,
+        modifier = Modifier.padding(bottom = 6.dp)
+    )
 }
 
 @Preview

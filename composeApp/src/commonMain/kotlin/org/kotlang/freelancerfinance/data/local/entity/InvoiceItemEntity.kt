@@ -8,7 +8,8 @@ data class InvoiceItemEntity(
     @PrimaryKey(autoGenerate = true)
     val id: Long = 0,
     val invoiceId: Long,
-    val description: String,
+    val name: String,
+    val description: String?,
     val quantity: Double,
     val unitPrice: Double,
     val taxRate: Double

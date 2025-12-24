@@ -10,29 +10,28 @@ import org.kotlang.freelancerfinance.domain.model.InvoiceLineItem
 import org.kotlang.freelancerfinance.domain.model.InvoiceStatus
 import org.kotlang.freelancerfinance.domain.model.InvoiceSummary
 
-// 1. Entity -> Domain (Reading from DB)
 fun InvoiceWithItems.toDomain(client: Client): Invoice {
     val lineItems = items.map { it.toDomain() }
-
-    val subTotal = lineItems.sumOf { it.amount }
-    val totalTax = lineItems.sumOf { it.amount * (it.taxRate / 100.0) }
 
     return Invoice(
         id = invoice.id,
         invoiceNumber = invoice.invoiceNumber,
-        client = client,
-        date = invoice.date,
-        items = lineItems,
-        status = InvoiceStatus.entries.getOrElse(invoice.status) { InvoiceStatus.DRAFT },
-        subTotal = subTotal,
-        taxAmount = totalTax,
-        totalAmount = subTotal + totalTax
+        dueDate = invoice.dueDate,
+        issueDate = invoice.issueDate,
+        status = InvoiceStatus.valueOf(invoice.status),
+        lineItems = lineItems,
+        subTotal = invoice.subTotal,
+        taxAmount = invoice.taxAmount,
+        client = invoice.clientSnapshot,
+        businessProfile = invoice.businessSnapshot,
+        totalAmount = invoice.totalAmount
     )
 }
 
 fun InvoiceItemEntity.toDomain(): InvoiceLineItem {
     return InvoiceLineItem(
         id = id,
+        name = name,
         description = description,
         quantity = quantity,
         unitPrice = unitPrice,
@@ -41,14 +40,18 @@ fun InvoiceItemEntity.toDomain(): InvoiceLineItem {
 }
 
 // 2. Domain -> Entity
-fun Invoice.toEntity(clientId: Long): InvoiceEntity {
+fun Invoice.toEntity(): InvoiceEntity {
     return InvoiceEntity(
         id = id,
         invoiceNumber = invoiceNumber,
-        clientId = clientId,
-        date = date,
-        status = status.ordinal,
-        totalAmount = totalAmount
+        dueDate = dueDate,
+        issueDate = issueDate,
+        status = status.name,
+        subTotal = subTotal,
+        taxAmount = taxAmount,
+        totalAmount = totalAmount,
+        clientSnapshot = client,
+        businessSnapshot = businessProfile
     )
 }
 
@@ -56,6 +59,7 @@ fun InvoiceLineItem.toEntity(invoiceId: Long): InvoiceItemEntity {
     return InvoiceItemEntity(
         id = id,
         invoiceId = invoiceId,
+        name = name,
         description = description,
         quantity = quantity,
         unitPrice = unitPrice,

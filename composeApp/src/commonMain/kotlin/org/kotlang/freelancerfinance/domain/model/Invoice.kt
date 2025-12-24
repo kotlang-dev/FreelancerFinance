@@ -1,27 +1,48 @@
 package org.kotlang.freelancerfinance.domain.model
 
-enum class InvoiceStatus { DRAFT, SENT, PAID }
-
 data class Invoice(
     val id: Long = 0,
     val invoiceNumber: String,
-    val client: Client,
-    val date: Long,
-    val items: List<InvoiceLineItem>,
+    val issueDate: Long,
+    val dueDate: Long,
     val status: InvoiceStatus,
+
+    val client: ClientSnapshot,
+    val businessProfile: BusinessSnapshot,
+    val lineItems: List<InvoiceLineItem>,
+
     val subTotal: Double,
     val taxAmount: Double,
     val totalAmount: Double
 )
 
+enum class InvoiceStatus { DRAFT, SENT, PAID, CANCELLED }
+
+data class ClientSnapshot(
+    val originalClientId: Long?,
+    val name: String,
+    val address: String,
+    val gstin: String?,
+    val state: String
+)
+
+data class BusinessSnapshot(
+    val name: String,
+    val address: String,
+    val gstin: String?,
+    val logoUrl: String?
+)
+
 data class InvoiceLineItem(
     val id: Long = 0,
-    val description: String,
+    val name: String,
+    val description: String?,
     val quantity: Double,
     val unitPrice: Double,
     val taxRate: Double
 ) {
-    val amount: Double get() = quantity * unitPrice
+    val total: Double
+        get() = (quantity * unitPrice) * (1 + taxRate / 100)
 }
 
 data class InvoiceSummary(

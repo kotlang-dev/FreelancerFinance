@@ -8,10 +8,16 @@ import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import org.kotlang.freelancerfinance.domain.model.BusinessSnapshot
+import org.kotlang.freelancerfinance.domain.model.ClientSnapshot
+import org.kotlang.freelancerfinance.domain.model.Invoice
+import org.kotlang.freelancerfinance.domain.model.InvoiceLineItem
+import org.kotlang.freelancerfinance.domain.model.InvoiceStatus
 import org.kotlang.freelancerfinance.domain.repository.ClientRepository
 import org.kotlang.freelancerfinance.domain.repository.FileOpener
 import org.kotlang.freelancerfinance.domain.repository.InvoiceRepository
@@ -74,9 +80,11 @@ class CreateInvoiceViewModel(
             is CreateInvoiceUiAction.OnDateFieldClick -> {
                 _state.update { it.copy(activeDatePicker = action.type) }
             }
-            is CreateInvoiceUiAction.OnInvoiceNumberChange -> TODO()
+            is CreateInvoiceUiAction.OnInvoiceNumberChange -> {
+                _state.update { it.copy(invoiceNumber = action.number) }
+            }
             is CreateInvoiceUiAction.OnQuantityChange -> TODO()
-            CreateInvoiceUiAction.OnSaveAndPreviewClick -> TODO()
+            CreateInvoiceUiAction.OnSaveAndPreviewClick -> saveInvoice()
             CreateInvoiceUiAction.OnGoBackClick -> {
                 sendEvent(CreateInvoiceEvent.NavigateBack)
             }
@@ -156,50 +164,70 @@ class CreateInvoiceViewModel(
         _state.update { it.copy(showServiceSelectionSheet = false) }
     }
 
-    /*
     private fun saveInvoice() {
-        val draft = _draftState.value
-        if (draft.selectedClient == null || draft.items.isEmpty()) return
+        val currentState = state.value
+        val client = currentState.selectedClient ?: return
 
-        val newInvoice = Invoice(
-            invoiceNumber = draft.invoiceNumber,
-            client = draft.selectedClient,
-            date = System.currentTimeMillis(),
-            items = draft.items,
-            status = InvoiceStatus.DRAFT,
-            subTotal = draft.subTotal,
-            taxAmount = draft.totalTax,
-            totalAmount = draft.grandTotal
-        )
+        if (!currentState.isSaveEnabled) return
 
         viewModelScope.launch {
-            _isGeneratingPdf.value = true
-            try {
-                invoiceRepository.createInvoice(newInvoice)
-                profileRepository.getProfile().collect { userProfile ->
-                    if (userProfile != null) {
-                        val path = pdfGenerator.generateInvoicePdf(newInvoice, userProfile)
+            _state.update { it.copy(isSaving = true) }
 
-                        withContext(Dispatchers.Main) {
-                            fileOpener.openFile(path)
-                        }
-                    } else {
-                        //_effectChannel.send(InvoiceUiEffect.ShowError("Cannot generate PDF. No Business Profile found."))
-                    }
+            try {
+                val businessProfile = profileRepository.getProfile().first()
+
+                val domainItems = currentState.lineItems.map { uiItem ->
+                    InvoiceLineItem(
+                        id = 0,
+                        name = uiItem.name,
+                        description = uiItem.description,
+                        quantity = uiItem.quantity,
+                        unitPrice = uiItem.unitPrice,
+                        taxRate = uiItem.taxRate
+                    )
                 }
+
+                val newInvoice = Invoice(
+                    id = 0,
+                    invoiceNumber = currentState.invoiceNumber,
+                    issueDate = currentState.issueDate,
+                    dueDate = currentState.dueDate,
+                    status = InvoiceStatus.DRAFT,
+
+                    client = ClientSnapshot(
+                        originalClientId = client.id,
+                        name = client.name,
+                        address = client.address,
+                        gstin = client.gstin,
+                        state = client.state.stateName
+                    ),
+
+                    // Freeze Business Data from the repo fetch
+                    businessProfile = BusinessSnapshot(
+                        name = businessProfile?.businessName ?: "",
+                        address = businessProfile?.addressLine1 ?: "",
+                        gstin = businessProfile?.gstin,
+                        logoUrl = businessProfile?.logoPath
+                    ),
+
+                    lineItems = domainItems,
+                    totalAmount = currentState.grandTotal,
+                    subTotal = currentState.subtotal,
+                    taxAmount = currentState.totalTax
+                )
+
+                invoiceRepository.createInvoice(newInvoice)
+
+                _uiEvent.send(CreateInvoiceEvent.ShowSnackbar("Invoice saved successfully"))
+
             } catch (e: Exception) {
                 e.printStackTrace()
-                //_effectChannel.send(InvoiceUiEffect.ShowError("Failed to save"))
+                _uiEvent.send(CreateInvoiceEvent.ShowSnackbar("Failed to save invoice: ${e.message}"))
             } finally {
-                _isGeneratingPdf.value = false
+                _state.update { it.copy(isSaving = false) }
             }
-
-            delay(200)
-            //_effectChannel.send(InvoiceUiEffect.NavigateBack)
         }
     }
-    */
-
     private fun sendEvent(event: CreateInvoiceEvent) {
         viewModelScope.launch {
             _uiEvent.send(event)

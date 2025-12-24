@@ -32,9 +32,9 @@ class InvoiceRepositoryImpl(
     }
 
     override suspend fun createInvoice(invoice: Invoice) {
-        val invoiceEntity = invoice.toEntity(invoice.client.id)
-        val itemEntities = invoice.items.map { it.toEntity(0) } // ID 0, DAO will fix it
-        
+        val itemEntities = invoice.lineItems.map { it.toEntity(invoice.id) }
+        val invoiceEntity = invoice.toEntity()
+
         invoiceDao.createInvoiceWithItems(invoiceEntity, itemEntities)
     }
 }

@@ -97,7 +97,7 @@ class AndroidPdfGenerator(
             canvas.drawText("No: ${invoice.invoiceNumber}", 400f, yPosition, paint)
             yPosition += 20f
             canvas.drawText(
-                "Date: ${dateFormat.format(Date(invoice.date))}",
+                "Date: ${dateFormat.format(Date(invoice.issueDate))}",
                 400f,
                 yPosition,
                 paint
@@ -136,11 +136,11 @@ class AndroidPdfGenerator(
 
             // 5. Items Loop
             paint.typeface = Typeface.DEFAULT
-            for (item in invoice.items) {
-                canvas.drawText(item.description, 50f, yPosition, paint)
+            for (item in invoice.lineItems) {
+                canvas.drawText(item.name, 50f, yPosition, paint)
                 canvas.drawText(item.quantity.toString(), 300f, yPosition, paint)
                 canvas.drawText(item.unitPrice.toString(), 380f, yPosition, paint)
-                canvas.drawText(item.amount.toString(), 480f, yPosition, paint)
+                canvas.drawText(item.taxRate.toString(), 480f, yPosition, paint)
 
                 yPosition += 20f
             }
