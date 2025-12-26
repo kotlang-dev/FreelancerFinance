@@ -9,4 +9,5 @@ interface InvoiceRepository {
     fun getRecentInvoicesSummary(count: Int = 5): Flow<List<InvoiceSummary>>
     fun getTotalRevenue(): Flow<Double>
     suspend fun createInvoice(invoice: Invoice)
+    fun getInvoiceById(id: Long): Flow<Invoice?>
 }

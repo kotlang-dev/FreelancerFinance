@@ -24,4 +24,7 @@ sealed interface Route {
 
     @Serializable
     data object CreateInvoice : Route
+
+    @Serializable
+    data class PreviewInvoice(val invoiceId: Long) : Route
 }

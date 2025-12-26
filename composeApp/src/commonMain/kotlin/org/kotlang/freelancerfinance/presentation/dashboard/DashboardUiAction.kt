@@ -5,4 +5,6 @@ sealed interface DashboardUiAction {
     data object OnManageServicesClick : DashboardUiAction
     data object OnEditProfileClick : DashboardUiAction
     data object OnCreateInvoiceClick : DashboardUiAction
+    data class OnInvoiceCardClick(val id: Long) : DashboardUiAction
+    data object OnViewAllClick : DashboardUiAction
 }

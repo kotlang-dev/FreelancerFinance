@@ -65,7 +65,9 @@ fun DashboardScreenRoot(
     onManageClients: () -> Unit,
     onManageServices: () -> Unit,
     onEditProfile: () -> Unit,
-    onCreateInvoice: () -> Unit
+    onCreateInvoice: () -> Unit,
+    onInvoiceCardClick: (id: Long) -> Unit,
+    onViewAllClick: () -> Unit
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
 
@@ -77,6 +79,8 @@ fun DashboardScreenRoot(
                 DashboardUiAction.OnManageServicesClick -> onManageServices()
                 DashboardUiAction.OnEditProfileClick -> onEditProfile()
                 DashboardUiAction.OnCreateInvoiceClick -> onCreateInvoice()
+                is DashboardUiAction.OnInvoiceCardClick -> onInvoiceCardClick(action.id)
+                DashboardUiAction.OnViewAllClick -> onViewAllClick()
             }
         }
     )
@@ -130,6 +134,7 @@ private fun DashboardScreen(
                         CircularProgressIndicator()
                     }
                 }
+
                 state.showEmptyState -> {
                     StandardEmptyStateView(
                         modifier = Modifier.fillMaxWidth().padding(24.dp),
@@ -137,15 +142,18 @@ private fun DashboardScreen(
                         title = "No invoices yet",
                         description = "Create your first invoice to start tracking your business earnings.",
                         buttonText = "Create New Invoice",
-                        onButtonClick = { onAction(DashboardUiAction.OnCreateInvoiceClick)}
+                        onButtonClick = { onAction(DashboardUiAction.OnCreateInvoiceClick) }
                     )
                 }
+
                 else -> {
                     InvoiceListView(
                         modifier = Modifier
                             .widthIn(max = 700.dp)
                             .align(Alignment.CenterHorizontally),
-                        invoices = state.recentInvoices
+                        invoices = state.recentInvoices,
+                        onInvoiceCardClick = { onAction(DashboardUiAction.OnInvoiceCardClick(it)) },
+                        onViewAllClick = { onAction(DashboardUiAction.OnViewAllClick) }
                     )
                 }
             }
@@ -317,7 +325,9 @@ fun ActionCard(
 
 @Composable
 private fun InvoiceItemCard(
-    invoice: InvoiceSummary
+    invoice: InvoiceSummary,
+    modifier: Modifier = Modifier,
+    onClick: (id: Long) -> Unit
 ) {
     val timestamp = invoice.date
     val uiDate = remember(timestamp) { timestamp.toInvoiceDateUi() }
@@ -332,7 +342,7 @@ private fun InvoiceItemCard(
             1.dp,
             MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f)
         ),
-        modifier = Modifier.fillMaxWidth()
+        modifier = modifier.fillMaxWidth().clickable { onClick(invoice.id) }
     ) {
         Row(
             modifier = Modifier
@@ -390,7 +400,9 @@ private fun InvoiceItemCard(
 @Composable
 private fun InvoiceListView(
     modifier: Modifier = Modifier,
-    invoices: List<InvoiceSummary>
+    invoices: List<InvoiceSummary>,
+    onInvoiceCardClick: (id: Long) -> Unit,
+    onViewAllClick: () -> Unit
 ) {
     Column(
         modifier = modifier
@@ -409,13 +421,16 @@ private fun InvoiceListView(
                 fontWeight = FontWeight.Bold,
                 color = MaterialTheme.colorScheme.onSurface
             )
-            TextButton(onClick = { /* Navigate to All */ }) {
+            TextButton(onClick = onViewAllClick) {
                 Text("View All")
             }
         }
 
         invoices.forEach { invoice ->
-            InvoiceItemCard(invoice = invoice)
+            InvoiceItemCard(
+                invoice = invoice,
+                onClick = onInvoiceCardClick
+            )
         }
     }
 }

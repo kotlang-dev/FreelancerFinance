@@ -26,6 +26,7 @@ import org.kotlang.freelancerfinance.presentation.manage_client.ManageClientView
 import org.kotlang.freelancerfinance.presentation.dashboard.DashboardViewModel
 import org.kotlang.freelancerfinance.presentation.create_invoice.CreateInvoiceViewModel
 import org.kotlang.freelancerfinance.presentation.manage_services.ManageServicesViewModel
+import org.kotlang.freelancerfinance.presentation.preview_invoice.PreviewInvoiceViewModel
 import org.kotlang.freelancerfinance.presentation.profile.ProfileViewModel
 
 val sharedModule = module {
@@ -52,4 +53,6 @@ val sharedModule = module {
     viewModelOf(::AddEditClientViewModel)
     viewModelOf(::ManageServicesViewModel)
     viewModelOf(::AddEditServiceViewModel)
+    viewModelOf(::PreviewInvoiceViewModel)
+
 }

@@ -37,4 +37,10 @@ class InvoiceRepositoryImpl(
 
         invoiceDao.createInvoiceWithItems(invoiceEntity, itemEntities)
     }
+
+    override fun getInvoiceById(id: Long): Flow<Invoice?> {
+        return invoiceDao.getInvoiceWithItems(id).map {
+            it?.toDomain()
+        }
+    }
 }

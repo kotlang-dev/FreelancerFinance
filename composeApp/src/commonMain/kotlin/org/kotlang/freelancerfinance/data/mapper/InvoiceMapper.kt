@@ -4,13 +4,12 @@ import org.kotlang.freelancerfinance.data.local.entity.InvoiceEntity
 import org.kotlang.freelancerfinance.data.local.entity.InvoiceItemEntity
 import org.kotlang.freelancerfinance.data.local.entity.InvoiceSummaryTuple
 import org.kotlang.freelancerfinance.data.local.relation.InvoiceWithItems
-import org.kotlang.freelancerfinance.domain.model.Client
 import org.kotlang.freelancerfinance.domain.model.Invoice
 import org.kotlang.freelancerfinance.domain.model.InvoiceLineItem
 import org.kotlang.freelancerfinance.domain.model.InvoiceStatus
 import org.kotlang.freelancerfinance.domain.model.InvoiceSummary
 
-fun InvoiceWithItems.toDomain(client: Client): Invoice {
+fun InvoiceWithItems.toDomain(): Invoice {
     val lineItems = items.map { it.toDomain() }
 
     return Invoice(

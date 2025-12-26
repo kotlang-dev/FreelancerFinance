@@ -8,6 +8,7 @@ import kotlinx.coroutines.flow.Flow
 import org.kotlang.freelancerfinance.data.local.entity.InvoiceEntity
 import org.kotlang.freelancerfinance.data.local.entity.InvoiceItemEntity
 import org.kotlang.freelancerfinance.data.local.entity.InvoiceSummaryTuple
+import org.kotlang.freelancerfinance.data.local.relation.InvoiceWithItems
 
 @Dao
 interface InvoiceDao {
@@ -54,6 +55,10 @@ interface InvoiceDao {
         LIMIT :limit
     """)
     fun getRecentInvoicesSummary(limit: Int): Flow<List<InvoiceSummaryTuple>>
+
+    @Transaction
+    @Query("SELECT * FROM invoices WHERE id = :id")
+    fun getInvoiceWithItems(id: Long): Flow<InvoiceWithItems?>
 }
 
 //TODO think of combining these two InvoicesSummary fn into one.

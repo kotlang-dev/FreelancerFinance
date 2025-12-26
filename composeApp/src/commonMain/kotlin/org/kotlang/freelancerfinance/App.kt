@@ -20,6 +20,7 @@ import org.kotlang.freelancerfinance.presentation.create_invoice.CreateInvoiceSc
 import org.kotlang.freelancerfinance.presentation.manage_client.ManageClientScreenRoot
 import org.kotlang.freelancerfinance.presentation.manage_services.ManageServicesScreenRoot
 import org.kotlang.freelancerfinance.presentation.navigation.Route
+import org.kotlang.freelancerfinance.presentation.preview_invoice.PreviewInvoiceScreenRoot
 import org.kotlang.freelancerfinance.presentation.profile.ProfileScreenRoot
 import org.kotlang.freelancerfinance.presentation.theme.FinanceAppTheme
 
@@ -46,7 +47,9 @@ fun App() {
                         onEditProfile = { navController.navigate(Route.Profile) },
                         onManageClients = { navController.navigate(Route.ManageClients) },
                         onManageServices = { navController.navigate(Route.ManageServices) },
-                        onCreateInvoice = { navController.navigate(Route.CreateInvoice) }
+                        onCreateInvoice = { navController.navigate(Route.CreateInvoice) },
+                        onInvoiceCardClick = { navController.navigate(Route.PreviewInvoice(it)) },
+                        onViewAllClick = {}
                     )
                 }
 
@@ -93,6 +96,12 @@ fun App() {
                         onNavigateToEditClient = { navController.navigate(Route.AddEditClient(it)) },
                         onNavigateToAddService = { navController.navigate(Route.AddEditService(null)) },
                         onNavigateToEditService = { navController.navigate(Route.AddEditService(it))}
+                    )
+                }
+
+                composable<Route.PreviewInvoice> {
+                    PreviewInvoiceScreenRoot(
+                        onNavigateBack = { navController.navigateUp() }
                     )
                 }
             }
