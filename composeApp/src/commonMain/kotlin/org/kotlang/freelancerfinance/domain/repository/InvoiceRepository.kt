@@ -8,6 +8,6 @@ interface InvoiceRepository {
     fun getAllInvoicesSummary(): Flow<List<InvoiceSummary>>
     fun getRecentInvoicesSummary(count: Int = 5): Flow<List<InvoiceSummary>>
     fun getTotalRevenue(): Flow<Double>
-    suspend fun createInvoice(invoice: Invoice)
+    suspend fun createInvoice(invoice: Invoice): Long
     fun getInvoiceById(id: Long): Flow<Invoice?>
 }

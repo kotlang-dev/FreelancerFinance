@@ -2,7 +2,6 @@ package org.kotlang.freelancerfinance.data.repository
 
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
-import org.kotlang.freelancerfinance.data.local.dao.ClientDao
 import org.kotlang.freelancerfinance.data.local.dao.InvoiceDao
 import org.kotlang.freelancerfinance.data.mapper.toDomain
 import org.kotlang.freelancerfinance.data.mapper.toEntity
@@ -11,8 +10,7 @@ import org.kotlang.freelancerfinance.domain.model.InvoiceSummary
 import org.kotlang.freelancerfinance.domain.repository.InvoiceRepository
 
 class InvoiceRepositoryImpl(
-    private val invoiceDao: InvoiceDao,
-    private val clientDao: ClientDao
+    private val invoiceDao: InvoiceDao
 ) : InvoiceRepository {
 
     override fun getAllInvoicesSummary(): Flow<List<InvoiceSummary>> {
@@ -31,11 +29,11 @@ class InvoiceRepositoryImpl(
         return invoiceDao.getTotalRevenue().map { it ?: 0.0 }
     }
 
-    override suspend fun createInvoice(invoice: Invoice) {
+    override suspend fun createInvoice(invoice: Invoice): Long {
         val itemEntities = invoice.lineItems.map { it.toEntity(invoice.id) }
         val invoiceEntity = invoice.toEntity()
 
-        invoiceDao.createInvoiceWithItems(invoiceEntity, itemEntities)
+        return invoiceDao.createInvoiceWithItems(invoiceEntity, itemEntities)
     }
 
     override fun getInvoiceById(id: Long): Flow<Invoice?> {

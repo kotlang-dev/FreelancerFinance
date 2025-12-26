@@ -87,7 +87,8 @@ fun CreateInvoiceScreenRoot(
     onNavigateToAddClient: () -> Unit,
     onNavigateToEditClient: (Long) -> Unit,
     onNavigateToAddService: () -> Unit,
-    onNavigateToEditService: (Long) -> Unit
+    onNavigateToEditService: (Long) -> Unit,
+    onNavigateToPreviewInvoice: (Long) -> Unit
 ) {
     val uiState by viewModel.state.collectAsStateWithLifecycle()
     val scope = rememberCoroutineScope()
@@ -99,6 +100,7 @@ fun CreateInvoiceScreenRoot(
             is CreateInvoiceEvent.NavigateToEditClient -> onNavigateToEditClient(event.clientId)
             CreateInvoiceEvent.NavigateToAddService -> onNavigateToAddService()
             is CreateInvoiceEvent.NavigateToEditService -> onNavigateToEditService(event.serviceId)
+            is CreateInvoiceEvent.NavigateToPreviewInvoice -> onNavigateToPreviewInvoice(event.invoiceId)
 
             is CreateInvoiceEvent.ShowSnackbar -> {
                 scope.launch { snackbarHostState.showSnackbar(event.message) }
@@ -285,6 +287,7 @@ private fun CreateInvoiceScreen(
         InvoiceBottomBar(
             modifier = Modifier.align(Alignment.BottomCenter),
             grandTotal = state.grandTotal,
+            isSaveEnabled = state.isSaveEnabled,
             onSaveClick = { onAction(CreateInvoiceUiAction.OnSaveAndPreviewClick) }
         )
     }
@@ -295,8 +298,9 @@ private fun CreateInvoiceScreen(
 @Composable
 fun InvoiceBottomBar(
     grandTotal: Double,
+    isSaveEnabled: Boolean,
     modifier: Modifier = Modifier,
-    onSaveClick: () -> Unit
+    onSaveClick: () -> Unit,
 ) {
     Surface(
         shadowElevation = 8.dp,
@@ -328,9 +332,11 @@ fun InvoiceBottomBar(
             }
 
             Button(
+                modifier = Modifier.height(50.dp),
                 onClick = onSaveClick,
                 shape = RoundedCornerShape(12.dp),
-                colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary)
+                colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary),
+                enabled = isSaveEnabled
             ) {
                 Icon(
                     painter = painterResource(Res.drawable.ic_save),

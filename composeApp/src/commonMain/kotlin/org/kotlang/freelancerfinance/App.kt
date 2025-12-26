@@ -95,7 +95,12 @@ fun App() {
                         onNavigateToAddClient = { navController.navigate(Route.AddEditClient(null)) },
                         onNavigateToEditClient = { navController.navigate(Route.AddEditClient(it)) },
                         onNavigateToAddService = { navController.navigate(Route.AddEditService(null)) },
-                        onNavigateToEditService = { navController.navigate(Route.AddEditService(it))}
+                        onNavigateToEditService = { navController.navigate(Route.AddEditService(it))},
+                        onNavigateToPreviewInvoice = { invoiceId ->
+                            navController.navigate(Route.PreviewInvoice(invoiceId)) {
+                                popUpTo<Route.Dashboard> { inclusive = false }
+                            }
+                        }
                     )
                 }
 

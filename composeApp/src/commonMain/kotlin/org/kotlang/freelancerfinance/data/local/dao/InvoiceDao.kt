@@ -20,10 +20,11 @@ interface InvoiceDao {
     suspend fun insertItems(items: List<InvoiceItemEntity>)
 
     @Transaction
-    suspend fun createInvoiceWithItems(invoice: InvoiceEntity, items: List<InvoiceItemEntity>) {
+    suspend fun createInvoiceWithItems(invoice: InvoiceEntity, items: List<InvoiceItemEntity>): Long {
         val invoiceId = insertInvoice(invoice)
         val itemsWithId = items.map { it.copy(invoiceId = invoiceId) }
         insertItems(itemsWithId)
+        return invoiceId
     }
 
     @Query("SELECT SUM(totalAmount) FROM invoices")

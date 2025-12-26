@@ -45,6 +45,7 @@ class PreviewInvoiceViewModel(
                     sendEvent(PreviewInvoiceEvent.SharePdf(path))
                 }
             }
+            PreviewInvoiceUiAction.OnEditClick -> {}
         }
     }
 

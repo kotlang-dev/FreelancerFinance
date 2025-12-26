@@ -30,9 +30,7 @@ class CreateInvoiceViewModel(
     clientRepository: ClientRepository,
     serviceItemRepository: ServiceItemRepository,
     private val invoiceRepository: InvoiceRepository,
-    private val profileRepository: ProfileRepository,
-    private val pdfGenerator: PdfGenerator,
-    private val fileOpener: FileOpener
+    private val profileRepository: ProfileRepository
 ) : ViewModel() {
 
     private val _state = MutableStateFlow(CreateInvoiceUiState())
@@ -50,9 +48,6 @@ class CreateInvoiceViewModel(
         started = SharingStarted.WhileSubscribed(5000),
         initialValue = CreateInvoiceUiState()
     )
-
-    private val _isGeneratingPdf = MutableStateFlow(false)
-    val isGeneratingPdf = _isGeneratingPdf.asStateFlow()
 
     private val _uiEvent = Channel<CreateInvoiceEvent>()
     val uiEvent = _uiEvent.receiveAsFlow()
@@ -216,9 +211,10 @@ class CreateInvoiceViewModel(
                     taxAmount = currentState.totalTax
                 )
 
-                invoiceRepository.createInvoice(newInvoice)
+                val invoiceId = invoiceRepository.createInvoice(newInvoice)
 
                 _uiEvent.send(CreateInvoiceEvent.ShowSnackbar("Invoice saved successfully"))
+                _uiEvent.send(CreateInvoiceEvent.NavigateToPreviewInvoice(invoiceId))
 
             } catch (e: Exception) {
                 e.printStackTrace()
